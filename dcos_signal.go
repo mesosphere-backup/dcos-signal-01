@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/mesosphere/dcos-signal/signal"
+	"github.com/dcos/dcos-signal/signal"
 )
 
 func main() {

@@ -6,7 +6,7 @@ VARIANT?=open
 
 BINARY_NAME := dcos-signal
 
-LDFLAGS := -X github.com/mesosphere/dcos-signal/signal.VERSION=$(VERSION) -X github.com/mesosphere/dcos-signal/signal.REVISION=$(REVISION) -X github.com/mesosphere/dcos-signal/config.VARIANT=$(VARIANT)
+LDFLAGS := -X github.com/dcos/dcos-signal/signal.VERSION=$(VERSION) -X github.com/dcos/dcos-signal/signal.REVISION=$(REVISION) -X github.com/dcos/dcos-signal/config.VARIANT=$(VARIANT)
 
 FILES := $(shell go list ./... | grep -v vendor)
 

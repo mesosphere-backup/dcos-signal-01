@@ -6,7 +6,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	config "github.com/mesosphere/dcos-signal/config"
+	config "github.com/dcos/dcos-signal/config"
 	"github.com/segmentio/analytics-go"
 )
 
