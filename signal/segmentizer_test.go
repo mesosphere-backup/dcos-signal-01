@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mesosphere/dcos-signal/config"
+	"github.com/dcos/dcos-signal/config"
 )
 
 func TestCreateUnitTotalKey(t *testing.T) {

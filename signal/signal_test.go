@@ -11,7 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"testing"
 
-	"github.com/mesosphere/dcos-signal/config"
+	"github.com/dcos/dcos-signal/config"
 )
 
 var mockNodes = []*Node{
