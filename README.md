@@ -1,3 +1,4 @@
+
 # DCOS Signal Service
 The signal service is a passive data forwarding service for the system health API. The signal service acts as a middleware which runs GET requests to 3DT on masters every hour, forming a POST to send to SegementIO for our support team. 
 
