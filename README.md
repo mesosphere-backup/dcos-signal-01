@@ -3,45 +3,31 @@ The signal service is a passive data forwarding service for the system health AP
 
 ## Go Requirements 
 [SegmentIO](https://segment.com/docs/libraries/go/)
-[Ginkgo](https://github.com/onsi/ginkgo)
-[Logrus](https://github.com/Sirupsen/logrus)
-
-## DCOS CLI Integration
-TBD
 
 ## Build
 ```
-go build dcos_signal_service.go segmentizer.go signaler.go config.go
+make build
 ```
+
+Or if you're running in an EE install
+
+```
+make build VARIANT=enterprise
+``` 
 
 ## Run 
 You can run an example with the ```run``` script:
 
 ```
-./run
+dcos-signal
 ```
 
-This will query a running 3DT environment and post the results to segmentIO. You can override the ENV parameters in this scirpt to test out different configurations and settings. 
+This will query a running 3DT environment and post the results to segmentIO. 
 
 ## Test
-Test suite is Ginkgo
 
-1. Get Ginkgo 
 ```
-go get github.com/onsi/ginkgo/ginkgo  # installs the ginkgo CLI
-go get github.com/onsi/gomega         # fetches the matcher library
-```
-
-2. Install Ginkgo
-```
-cd /path/to/ginkgo/
-go install
-```
-
-3. Test Signal Service
-```
-cd /path/to/dcos-signal/
-ginkgo 
+make test
 ```
 
 ## CLI Arguments 
@@ -51,8 +37,6 @@ Usage:
         Override path to DCOS anonymous ID. (default "/var/lib/dcos_anonymous_uuid.json")
   -c string
         Path to dcos-signal-service.conf. (default "/etc/dcos-signal-config.json")
-  -ee
-        Set the EE flag.
   -report-endpoint string
         Override default health endpoint. (default "/system/health/v1/report")
   -report-host string
@@ -64,5 +48,3 @@ Usage:
         Print version and exit.
 </pre>
 
-## Local Testing
-You can modify the run script and point it to any master where :1050 is exposed and available. 
