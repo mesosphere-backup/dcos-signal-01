@@ -30,13 +30,13 @@ func pullHealthReport(healthURL string, endpoint string) (hr *HealthReport, err 
 		log.Error("Error handling response from ", url, ": ", err)
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Error(err)
 		return nil, err
 	}
-	defer resp.Body.Close()
 
 	if err := json.Unmarshal(body, &hr); err != nil {
 		log.Error("Error unmarshaling JSON body: ", err)
