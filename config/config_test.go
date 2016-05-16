@@ -18,6 +18,7 @@ func TestDefaultConfig(t *testing.T) {
 		DCOSVersion:             "",
 		DCOSClusterIDPath:       "/var/lib/dcos/cluster-id",
 		SignalServiceConfigPath: "/opt/mesosphere/etc/dcos-signal-config.json",
+		ExtraJSONConfigPath:     "/opt/mesosphere/etc/dcos-signal-extra.json",
 		FlagEE:                  false,
 		DCOSVariant:             "UNSET",
 		GenProvider:             "",
