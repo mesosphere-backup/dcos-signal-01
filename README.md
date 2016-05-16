@@ -1,7 +1,7 @@
-# DCOS Signal Service
+# DCOS Signal Service [![velocity](http://velocity.mesosphere.com/service/velocity/buildStatus/icon?job=public-dcos-signal-service-master)](http://velocity.mesosphere.com/service/velocity/job/public-dcos-signal-service-master/)
 The signal service is a passive data forwarding service for the system health API. The signal service acts as a middleware which runs GET requests to 3DT on masters every hour, forming a POST to send to SegementIO for our support team. 
 
-## Go Requirements 
+## Go Requirements
 [SegmentIO](https://segment.com/docs/libraries/go/)
 
 ## Build
@@ -13,16 +13,16 @@ Or if you're running in an EE install
 
 ```
 make build VARIANT=enterprise
-``` 
+```
 
-## Run 
+## Run
 You can run an example with the ```run``` script:
 
 ```
 dcos-signal
 ```
 
-This will query a running 3DT environment and post the results to segmentIO. 
+This will query a running 3DT environment and post the results to segmentIO.
 
 ## Test
 
@@ -30,7 +30,7 @@ This will query a running 3DT environment and post the results to segmentIO.
 make test
 ```
 
-## CLI Arguments 
+## CLI Arguments
 <pre>
 Usage:
   -anonymous-id-path string
@@ -47,4 +47,3 @@ Usage:
   -version
         Print version and exit.
 </pre>
-
