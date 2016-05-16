@@ -30,6 +30,7 @@ type Config struct {
 
 	// External Config Path Generated at Install Time
 	SignalServiceConfigPath string
+	ExtraJSONConfigPath     string
 
 	// Optional CLI Flags
 	FlagVersion bool
@@ -55,6 +56,7 @@ func DefaultConfig() Config {
 		DCOSVariant:             VARIANT,
 		GenProvider:             "",
 		SignalServiceConfigPath: "/opt/mesosphere/etc/dcos-signal-config.json",
+		ExtraJSONConfigPath:     "/opt/mesosphere/etc/dcos-signal-extra.json",
 		TestFlag:                false,
 	}
 }
@@ -88,6 +90,12 @@ func (c *Config) getExternalConfig() error {
 	}
 	if err := json.Unmarshal(fileByte, &c); err != nil {
 		return err
+	}
+	// Check for extra config and load if available
+	if extraJSON, err := ioutil.ReadFile(c.ExtraJSONConfigPath); err == nil {
+		if jsonErr := json.Unmarshal(extraJSON, &c); jsonErr != nil {
+			return jsonErr
+		}
 	}
 	return nil
 }
