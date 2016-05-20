@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/dcos/dcos-signal/config"
-	"github.com/grafana/grafana/pkg/log"
 	"github.com/segmentio/analytics-go"
 )
 
