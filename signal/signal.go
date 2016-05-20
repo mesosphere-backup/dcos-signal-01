@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/dcos/dcos-signal/config"
@@ -14,33 +13,6 @@ var (
 	VERSION  = "UNSET"
 	REVISION = "UNSET"
 )
-
-// HealthReport defines the JSON received from the /system/health/report endpoint
-// The health report returns keys that are not formatted for JSON specifically, so
-// we do not modify them and instead pass the param as the key, unmodified.
-type HealthReport struct {
-	Units map[string]*Unit
-	Nodes map[string]*Node
-}
-
-// Unit defines the JSON for the unit field in HealthReport
-type Unit struct {
-	UnitName  string
-	Nodes     []*Node
-	Health    int
-	Title     string
-	Timestamp time.Time
-}
-
-// Node defines the JSON for the node field in the HealthReport
-type Node struct {
-	Role   string
-	Ip     string
-	Host   string
-	Health int
-	Output map[string]string
-	Units  []Unit
-}
 
 type test struct {
 	Event      string
@@ -53,30 +25,33 @@ type test struct {
 // an error if encountered.
 func executeRunner(c config.Config) error {
 	log.Info("==> STARTING SIGNAL RUNNER")
-	healthURL := fmt.Sprintf("http://%s:%d", c.HealthHost, c.HealthAPIPort)
 
-	healthReport, err := pullHealthReport(healthURL, c.HealthEndpoint)
-	if err != nil {
-		log.Error("==> ERROR GETTING REPORT.")
-		log.Error("Are you sure the URL, endport and port are correct?")
+	var (
+		diagnostics = Diagnostics{
+			URL:    c.DiagnosticsURL,
+			Method: "GET",
+			Headers: map[string]string{
+				"Content-Type": "application/json",
+			},
+		}
+	)
+
+	if err := PullReport(&diagnostics, c); err != nil {
+		log.Error("Error getting diagnostics report")
 		return err
 	}
 
-	log.Info("Retrieved health report from ", c.HealthHost, ":", c.HealthAPIPort, c.HealthEndpoint)
-
-	ac := CreateSegmentClient(c.SegmentKey, c.FlagVerbose)
-	track, test := CreateSegmentTrack(healthReport, c)
 	if c.TestFlag {
-		pretty, _ := json.MarshalIndent(test, "", "    ")
+		pretty, _ := json.MarshalIndent(diagnostics.GetReport(), "", "    ")
 		fmt.Printf(string(pretty))
 		return nil
-	}
-	if err := ac.Track(track); err != nil {
-		log.Error(err)
-		return err
+	} else {
+		if err := diagnostics.Track(c); err != nil {
+			log.Error("Error sending diagnostics track data")
+			return err
+		}
 	}
 
-	ac.Close()
 	log.Info("==> SUCCESS")
 	return nil
 }

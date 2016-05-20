@@ -5,16 +5,19 @@ import (
 	"flag"
 	"io/ioutil"
 	"os"
+	"time"
+
+	log "github.com/Sirupsen/logrus"
+	"github.com/dgrijalva/jwt-go"
 )
 
 var VARIANT = "UNSET"
 
 // Config defines dcos-signal configuration
 type Config struct {
-	// 3DT Settings
-	HealthAPIPort  int
-	HealthEndpoint string
-	HealthHost     string
+	// Service URLs
+	DiagnosticsURL string `json:"diagnostics_url"`
+	CosmosURL      string `json:"cosmos_url"`
 
 	// Segment IO Settings
 	SegmentKey   string
@@ -38,14 +41,23 @@ type Config struct {
 	FlagEE      bool
 	TestFlag    bool
 	Enabled     string `json:"enabled"`
+
+	// Service account configuration
+	ID         string `json:"uid"`
+	SecretPath string `json:"secret_path"`
+	Secret     string
+	JwtToken   string
+
+	// Endpoint configuration
+	TLSEnabled bool `json:"tls_enabled"`
 }
 
 // DefaultConfig returns default Config{}
 func DefaultConfig() Config {
 	return Config{
-		HealthAPIPort:           1050,
-		HealthEndpoint:          "/system/health/v1/report",
-		HealthHost:              "localhost",
+		DiagnosticsURL: "localhost/system/health/v1/report",
+		CosmosURL:      "localhost/package/list",
+
 		SegmentEvent:            "health",
 		SegmentKey:              "",
 		CustomerKey:             "",
@@ -64,14 +76,23 @@ func DefaultConfig() Config {
 func (c *Config) setFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&c.FlagVerbose, "v", c.FlagVerbose, "Verbose logging mode.")
 	fs.BoolVar(&c.FlagVersion, "version", c.FlagVersion, "Print version and exit.")
-	fs.StringVar(&c.HealthHost, "report-host", c.HealthHost, "Override the default host to query the health report from.")
-	fs.IntVar(&c.HealthAPIPort, "report-port", c.HealthAPIPort, "Override the default health API port.")
-	fs.StringVar(&c.HealthEndpoint, "report-endpoint", c.HealthEndpoint, "Override default health endpoint.")
 	fs.StringVar(&c.DCOSClusterIDPath, "cluster-id-path", c.DCOSClusterIDPath, "Override path to DCOS anonymous ID.")
 	fs.BoolVar(&c.FlagEE, "ee", c.FlagEE, "Set the EE flag.")
 	fs.StringVar(&c.SignalServiceConfigPath, "c", c.SignalServiceConfigPath, "Path to dcos-signal-service.conf.")
 	fs.BoolVar(&c.TestFlag, "test", c.TestFlag, "Test mode dumps a JSON object of the data that would be sent to Segment to STDOUT.")
 	fs.StringVar(&c.SegmentKey, "segment-key", c.SegmentKey, "Key for segmentIO.")
+}
+
+func (c *Config) generateJWTToken() error {
+	token := jwt.New(jwt.SigningMethodRS256)
+	token.Claims["uid"] = c.ID
+	token.Claims["exp"] = time.Now().Add(time.Hour).Unix()
+	tokenStr, err := token.SignedString([]byte(c.Secret))
+	if err != nil {
+		return err
+	}
+	c.JwtToken = tokenStr
+	return nil
 }
 
 func (c *Config) getClusterID() error {
@@ -97,6 +118,15 @@ func (c *Config) getExternalConfig() error {
 			return jsonErr
 		}
 	}
+	// Attempt the load the secret file
+	if len(c.SecretPath) > 0 {
+		log.Warnf("Attempting to load secret file %s", c.SecretPath)
+		if secretFile, err := ioutil.ReadFile(c.SecretPath); err != nil {
+			return err
+		} else {
+			c.Secret = string(secretFile)
+		}
+	}
 	return nil
 }
 
@@ -118,6 +148,12 @@ func ParseArgsReturnConfig(args []string) (Config, []error) {
 		c.GenProvider = err.Error()
 		c.CustomerKey = err.Error()
 		errAry = append(errAry, err)
+	}
+
+	if len(c.ID) > 0 || len(c.Secret) > 0 {
+		if err := c.generateJWTToken(); err != nil {
+			errAry = append(errAry, err)
+		}
 	}
 
 	if c.FlagEE {
