@@ -5,6 +5,10 @@ import (
 	"flag"
 	"io/ioutil"
 	"os"
+	"time"
+
+	log "github.com/Sirupsen/logrus"
+	"github.com/dgrijalva/jwt-go"
 )
 
 var VARIANT = "UNSET"
@@ -38,6 +42,12 @@ type Config struct {
 	FlagEE      bool
 	TestFlag    bool
 	Enabled     string `json:"enabled"`
+
+	// Service account configuration
+	ID         string `json:"uid"`
+	SecretPath string `json:"secret_path"`
+	Secret     string
+	JwtToken   string
 }
 
 // DefaultConfig returns default Config{}
@@ -74,6 +84,18 @@ func (c *Config) setFlags(fs *flag.FlagSet) {
 	fs.StringVar(&c.SegmentKey, "segment-key", c.SegmentKey, "Key for segmentIO.")
 }
 
+func (c *Config) generateJWTToken() error {
+	token := jwt.New(jwt.SigningMethodRS256)
+	token.Claims["uid"] = c.ID
+	token.Claims["exp"] = time.Now().Add(time.Hour).Unix()
+	tokenStr, err := token.SignedString([]byte(c.Secret))
+	if err != nil {
+		return err
+	}
+	c.JwtToken = tokenStr
+	return nil
+}
+
 func (c *Config) getClusterID() error {
 	fileByte, err := ioutil.ReadFile(c.DCOSClusterIDPath)
 	if err != nil {
@@ -95,6 +117,15 @@ func (c *Config) getExternalConfig() error {
 	if extraJSON, err := ioutil.ReadFile(c.ExtraJSONConfigPath); err == nil {
 		if jsonErr := json.Unmarshal(extraJSON, &c); jsonErr != nil {
 			return jsonErr
+		}
+	}
+	// Attempt the load the secret file
+	if len(c.SecretPath) > 0 {
+		log.Warnf("Attempting to load secret file %s", c.SecretPath)
+		if secretFile, err := ioutil.ReadFile(c.SecretPath); err != nil {
+			return err
+		} else {
+			c.Secret = string(secretFile)
 		}
 	}
 	return nil
@@ -122,6 +153,12 @@ func ParseArgsReturnConfig(args []string) (Config, []error) {
 
 	if c.FlagEE {
 		c.DCOSVariant = "enterprise"
+	}
+
+	if len(c.ID) > 0 || len(c.Secret) > 0 {
+		if err := c.generateJWTToken(); err != nil {
+			errAry = append(errAry, err)
+		}
 	}
 
 	if len(errAry) > 0 {
