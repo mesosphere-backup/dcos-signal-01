@@ -112,18 +112,17 @@ func TestSignalRunner(t *testing.T) {
 	badUserId.DiagnosticsURL = fmt.Sprintf("http://%s:%d/%s", ip, port, endpoint)
 
 	badJson.CustomerKey = "12345"
-	badJson.DiagnosticsURL = fmt.Sprintf("http://%s:%d/%s", ip, port, endpoint)
+	badJson.DiagnosticsURL = fmt.Sprintf("http://%s:%d/%s/badjson", ip, port, endpoint)
 
 	badHost.CustomerKey = "12345"
-	badHost.DiagnosticsURL = "http://localhost"
+	badHost.DiagnosticsURL = "http://foo"
 
 	version.FlagVersion = true
 
 	var (
-		errOk     = executeRunner(cOk)
-		errJson   = executeRunner(badJson)
-		errUserId = executeRunner(badUserId)
-		errHost   = executeRunner(badHost)
+		errOk   = executeRunner(cOk)
+		errJson = executeRunner(badJson)
+		errHost = executeRunner(badHost)
 	)
 
 	if errOk != nil {
@@ -134,8 +133,5 @@ func TestSignalRunner(t *testing.T) {
 	}
 	if errHost == nil {
 		t.Error("Expected bad route to host error, got ", errHost)
-	}
-	if errUserId == nil {
-		t.Error("Expected bad segment user ID to throw err, got ", errUserId)
 	}
 }
