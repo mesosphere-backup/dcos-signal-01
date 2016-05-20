@@ -45,3 +45,10 @@ func pullHealthReport(healthURL string, endpoint string) (hr *HealthReport, err 
 
 	return hr, nil
 }
+
+type PackageList struct{}
+
+func pullPackageList(URL string) (pl *PackageList, err error) {
+
+	return pl, nil
+}
