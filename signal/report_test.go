@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/dcos/dcos-signal/config"
+	"github.com/segmentio/analytics-go"
 )
 
 type testReportType struct {
@@ -48,7 +49,15 @@ func (t *testReportType) GetReport() interface{} {
 	return t.Report
 }
 
-func (t *testReportType) Track(config.Config) error {
+func (t *testReportType) SetTrack(config.Config) error {
+	return nil
+}
+
+func (t *testReportType) GetTrack() (a *analytics.Track) {
+	return a
+}
+
+func (t *testReportType) SendTrack(config.Config) error {
 	return nil
 }
 

@@ -41,12 +41,17 @@ func executeRunner(c config.Config) error {
 		return err
 	}
 
+	if err := diagnostics.SetTrack(c); err != nil {
+		log.Error("Unable to set diagnostics .track, ", err)
+		return err
+	}
+
 	if c.TestFlag {
-		pretty, _ := json.MarshalIndent(diagnostics.GetReport(), "", "    ")
+		pretty, _ := json.MarshalIndent(diagnostics.GetTrack(), "", "    ")
 		fmt.Printf(string(pretty))
 		return nil
 	} else {
-		if err := diagnostics.Track(c); err != nil {
+		if err := diagnostics.SendTrack(c); err != nil {
 			log.Error("Error sending diagnostics track data")
 			return err
 		}
