@@ -3,6 +3,8 @@ package signal
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"time"
 
@@ -14,44 +16,6 @@ var (
 	VERSION  = "UNSET"
 	REVISION = "UNSET"
 )
-
-type Reporter interface {
-	Pull(Report) error
-}
-
-type Report interface {
-	SetKind(interface{}) error
-	GetKind() (interface{}, error)
-	SetReport(interface{}) error
-	GetReport() (interface{}, error)
-}
-
-// HealthReport defines the JSON received from the /system/health/report endpoint
-// The health report returns keys that are not formatted for JSON specifically, so
-// we do not modify them and instead pass the param as the key, unmodified.
-type HealthReport struct {
-	Units map[string]*Unit
-	Nodes map[string]*Node
-}
-
-// Unit defines the JSON for the unit field in HealthReport
-type Unit struct {
-	UnitName  string
-	Nodes     []*Node
-	Health    int
-	Title     string
-	Timestamp time.Time
-}
-
-// Node defines the JSON for the node field in the HealthReport
-type Node struct {
-	Role   string
-	Ip     string
-	Host   string
-	Health int
-	Output map[string]string
-	Units  []Unit
-}
 
 type test struct {
 	Event      string
