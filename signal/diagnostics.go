@@ -125,7 +125,7 @@ func (d *Diagnostics) SendTrack(c config.Config) error {
 	ac := CreateSegmentClient(c.SegmentKey, c.FlagVerbose)
 	defer ac.Close()
 
-	if err := ac.Track(d.GetTrack()); err != nil {
+	if err := ac.Track(d.Track); err != nil {
 		return err
 	}
 	return nil
