@@ -50,7 +50,7 @@ type Config struct {
 	JwtToken   string
 
 	// Endpoint configuration
-	SignalEndpoints []string `json:"signal_endpoints"`
+	TLSEnabled bool `json:"tls_enabled"`
 }
 
 // DefaultConfig returns default Config{}

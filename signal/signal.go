@@ -15,6 +15,17 @@ var (
 	REVISION = "UNSET"
 )
 
+type Reporter interface {
+	Pull(Report) error
+}
+
+type Report interface {
+	SetKind(interface{}) error
+	GetKind() (interface{}, error)
+	SetReport(interface{}) error
+	GetReport() (interface{}, error)
+}
+
 // HealthReport defines the JSON received from the /system/health/report endpoint
 // The health report returns keys that are not formatted for JSON specifically, so
 // we do not modify them and instead pass the param as the key, unmodified.
