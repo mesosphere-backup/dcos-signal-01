@@ -28,7 +28,13 @@ type test struct {
 // an error if encountered.
 func executeRunner(c config.Config) error {
 	log.Info("==> STARTING SIGNAL RUNNER")
-	healthURL := fmt.Sprintf("http://%s:%d", c.HealthHost, c.HealthAPIPort)
+
+	var (
+		diagnostics = Diagnostics{
+			URL:    c.DiagnosticsURL,
+			Method: "GET",
+		}
+	)
 
 	healthReport, err := pullHealthReport(healthURL, c.HealthEndpoint)
 	if err != nil {
