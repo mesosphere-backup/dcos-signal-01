@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
 )
@@ -11,10 +12,10 @@ var VARIANT = "UNSET"
 
 // Config defines dcos-signal configuration
 type Config struct {
-	// 3DT Settings
-	HealthAPIPort  int
-	HealthEndpoint string
-	HealthHost     string
+	// MasterURL is gained from execution of ip-detect
+	MasterURL string
+	// Make requests using HTTP or HTTPS? Set based on variant at install time.
+	TLSEnabled bool `json:"tls_enabled"`
 
 	// Segment IO Settings
 	SegmentKey   string
@@ -35,7 +36,6 @@ type Config struct {
 	// Optional CLI Flags
 	FlagVersion bool
 	FlagVerbose bool
-	FlagEE      bool
 	TestFlag    bool
 	Enabled     string `json:"enabled"`
 }
@@ -43,18 +43,10 @@ type Config struct {
 // DefaultConfig returns default Config{}
 func DefaultConfig() Config {
 	return Config{
-		HealthAPIPort:           1050,
-		HealthEndpoint:          "/system/health/v1/report",
-		HealthHost:              "localhost",
 		SegmentEvent:            "health",
-		SegmentKey:              "",
-		CustomerKey:             "",
-		ClusterID:               "",
 		DCOSVersion:             os.Getenv("DCOS_VERSION"),
 		DCOSClusterIDPath:       "/var/lib/dcos/cluster-id",
-		FlagEE:                  false,
 		DCOSVariant:             VARIANT,
-		GenProvider:             "",
 		SignalServiceConfigPath: "/opt/mesosphere/etc/dcos-signal-config.json",
 		ExtraJSONConfigPath:     "/opt/mesosphere/etc/dcos-signal-extra.json",
 		TestFlag:                false,
@@ -64,14 +56,44 @@ func DefaultConfig() Config {
 func (c *Config) setFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&c.FlagVerbose, "v", c.FlagVerbose, "Verbose logging mode.")
 	fs.BoolVar(&c.FlagVersion, "version", c.FlagVersion, "Print version and exit.")
-	fs.StringVar(&c.HealthHost, "report-host", c.HealthHost, "Override the default host to query the health report from.")
-	fs.IntVar(&c.HealthAPIPort, "report-port", c.HealthAPIPort, "Override the default health API port.")
-	fs.StringVar(&c.HealthEndpoint, "report-endpoint", c.HealthEndpoint, "Override default health endpoint.")
 	fs.StringVar(&c.DCOSClusterIDPath, "cluster-id-path", c.DCOSClusterIDPath, "Override path to DCOS anonymous ID.")
-	fs.BoolVar(&c.FlagEE, "ee", c.FlagEE, "Set the EE flag.")
 	fs.StringVar(&c.SignalServiceConfigPath, "c", c.SignalServiceConfigPath, "Path to dcos-signal-service.conf.")
 	fs.BoolVar(&c.TestFlag, "test", c.TestFlag, "Test mode dumps a JSON object of the data that would be sent to Segment to STDOUT.")
 	fs.StringVar(&c.SegmentKey, "segment-key", c.SegmentKey, "Key for segmentIO.")
+}
+
+func (c *Config) setMasterURL() error {
+	log.Info("Calculating Master URL")
+	if c.MasterURL != "" {
+		log.Warnf("MasterURL already set in memory, not regenerating: %s", c.MasterURL)
+		return nil
+	}
+
+	detectIPCommand := os.Getenv("MESOS_IP_DISCOVERY_COMMAND")
+	if detectIPCommand == "" {
+		detectIPCommand = "/opt/mesosphere/bin/detect_ip"
+		log.Warnf("Environment variable MESOS_IP_DISCOVERY_COMMAND is not set, using default location: %s", detectIPCommand)
+	}
+
+	out, err := exec.Command(detectIPCommand).Output()
+	if err != nil {
+		log.Errorf("Unable to execute %s: %s", detectIPCommand, err.Error())
+		// Best effort, some services are still available from this URI
+		out = []byte("localhost")
+	}
+
+	masterIP := strings.TrimRight(string(out), "\n")
+	c.MasterURL = fmt.Sprintf("http://%s", masterIP)
+	if !c.TLSEnabled {
+		log.Warn("TLS disabled, protocol set to HTTP")
+	} else {
+		log.Info("TLS enabled, protocol set to HTTPS")
+		c.MasterURL = fmt.Sprintf("https://%s", masterIP)
+	}
+
+	log.Infof("Master URL Set: %s", c.MasterURL)
+
+	return nil
 }
 
 func (c *Config) getClusterID() error {
@@ -97,6 +119,7 @@ func (c *Config) getExternalConfig() error {
 			return jsonErr
 		}
 	}
+
 	return nil
 }
 
@@ -120,8 +143,8 @@ func ParseArgsReturnConfig(args []string) (Config, []error) {
 		errAry = append(errAry, err)
 	}
 
-	if c.FlagEE {
-		c.DCOSVariant = "enterprise"
+	if err := c.setMasterURL(); err != nil {
+		errAry = append(errAry, err)
 	}
 
 	if len(errAry) > 0 {

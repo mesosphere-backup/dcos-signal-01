@@ -2,9 +2,9 @@ package signal
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
-	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/dcos/dcos-signal/config"
@@ -15,33 +15,6 @@ var (
 	REVISION = "UNSET"
 )
 
-// HealthReport defines the JSON received from the /system/health/report endpoint
-// The health report returns keys that are not formatted for JSON specifically, so
-// we do not modify them and instead pass the param as the key, unmodified.
-type HealthReport struct {
-	Units map[string]*Unit
-	Nodes map[string]*Node
-}
-
-// Unit defines the JSON for the unit field in HealthReport
-type Unit struct {
-	UnitName  string
-	Nodes     []*Node
-	Health    int
-	Title     string
-	Timestamp time.Time
-}
-
-// Node defines the JSON for the node field in the HealthReport
-type Node struct {
-	Role   string
-	Ip     string
-	Host   string
-	Health int
-	Output map[string]string
-	Units  []Unit
-}
-
 type test struct {
 	Event      string
 	UserId     string
@@ -49,35 +22,87 @@ type test struct {
 	Properties map[string]interface{}
 }
 
+func runner(r Reporter, c config.Config) error {
+	if err := PullReport(r, c); err == nil {
+		if err := r.SetTrack(c); err == nil {
+			if c.TestFlag {
+				pretty, _ := json.MarshalIndent(r.GetTrack(), "", "    ")
+				fmt.Printf(string(pretty))
+				log.Info("====> DONE")
+			} else {
+				if err := r.SendTrack(c); err != nil {
+					return err
+				}
+			}
+		} else {
+			return err
+		}
+	} else {
+		return err
+	}
+	return nil
+}
+
 // StartSignalRunner accepts Config and runs the signal service once. It returns
 // an error if encountered.
 func executeRunner(c config.Config) error {
 	log.Info("==> STARTING SIGNAL RUNNER")
-	healthURL := fmt.Sprintf("http://%s:%d", c.HealthHost, c.HealthAPIPort)
 
-	healthReport, err := pullHealthReport(healthURL, c.HealthEndpoint)
-	if err != nil {
-		log.Error("==> ERROR GETTING REPORT.")
-		log.Error("Are you sure the URL, endport and port are correct?")
-		return err
+	var (
+		diagnostics = Diagnostics{
+			Endpoints: []string{
+				":1050/system/health/v1/report",
+			},
+			Method: "GET",
+			Headers: map[string]string{
+				"content-type": "application/json",
+			},
+		}
+
+		cosmos = Cosmos{
+			Endpoints: []string{
+				":7070/package/list",
+			},
+			Method: "POST",
+			Headers: map[string]string{
+				"content-type": "application/vnd.dcos.package.list-request",
+			},
+		}
+
+		mesos = Mesos{
+			Endpoints: []string{
+				":5050/frameworks",
+				":5050/metrics/snapshot",
+			},
+			Method: "GET",
+			Headers: map[string]string{
+				"content-type": "application/json",
+			},
+		}
+
+		errored = []error{}
+	)
+
+	// Might want to declare a []Reporter and do this async once we get a few more.
+	if err := runner(&diagnostics, c); err != nil {
+		errored = append(errored, err)
 	}
 
-	log.Info("Retrieved health report from ", c.HealthHost, ":", c.HealthAPIPort, c.HealthEndpoint)
-
-	ac := CreateSegmentClient(c.SegmentKey, c.FlagVerbose)
-	track, test := CreateSegmentTrack(healthReport, c)
-	if c.TestFlag {
-		pretty, _ := json.MarshalIndent(test, "", "    ")
-		fmt.Printf(string(pretty))
-		return nil
-	}
-	if err := ac.Track(track); err != nil {
-		log.Error(err)
-		return err
+	if err := runner(&cosmos, c); err != nil {
+		errored = append(errored, err)
 	}
 
-	ac.Close()
-	log.Info("==> SUCCESS")
+	if err := runner(&mesos, c); err != nil {
+		errored = append(errored, err)
+	}
+
+	if len(errored) > 0 {
+		for _, err := range errored {
+			log.Error(err)
+		}
+		return errors.New("Errors encountered executing report runners")
+	}
+
 	return nil
 }
 
@@ -104,7 +129,9 @@ func Start() {
 		// data to segment even if we can't find things like the anon uuid file or
 		// signal service config json since those would indicate that something is
 		// no right, and signal service is all about surfacing that kind of data.
-		log.Error(configErr)
+		for _, err := range configErr {
+			log.Error(err)
+		}
 	}
 	if err := executeRunner(config); err != nil {
 		log.Error(err)

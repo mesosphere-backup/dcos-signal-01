@@ -5,13 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
-	"strings"
 
 	"github.com/gorilla/mux"
-	"testing"
-
-	"github.com/dcos/dcos-signal/config"
 )
 
 var mockNodes = []*Node{
@@ -54,14 +49,58 @@ var mockUnits = map[string]*Unit{
 	},
 }
 
-var mockHealthReport = &HealthReport{
-	Units: mockUnits,
-	Nodes: nil,
+var (
+	mockHealthReport = &HealthReport{
+		Units: mockUnits,
+		Nodes: nil,
+	}
+
+	cosmosPkgs = CosmosPackages{
+		AppID: "fooPackage",
+	}
+
+	mesosFrameworks = map[string][]string{
+		"frameworks": []string{
+			"fooFramework1",
+			"fooFramework2",
+		},
+	}
+
+	mesosMetricsSnapshot = map[string]int{
+		"master/cpus_total":        10,
+		"master/cpus_used":         2,
+		"master/disk_total":        1000,
+		"master/disk_used":         20,
+		"master/mem_total":         2000,
+		"master/mem_used":          200,
+		"master/tasks_running":     4,
+		"master/frameworks_active": 2,
+		"master/slaves_connected":  3,
+		"master/slaves_active":     1,
+	}
+
+	mockCosmosReport = &CosmosReport{
+		Packages: []CosmosPackages{
+			cosmosPkgs,
+		},
+	}
+	server = httptest.NewServer(mockRouter())
+)
+
+func mockHealthReportHandler(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode(mockHealthReport)
 }
 
-// Mock a /system/health/report endpoint
-func mockReportHandler(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(mockHealthReport)
+func mockFrameworksHandler(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode(mesosFrameworks)
+}
+
+func mockMesosStatsHandler(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode(mesosMetricsSnapshot)
+}
+
+func mockCosmosReportHandler(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode(mockCosmosReport)
 }
 
 func mockBadJson(w http.ResponseWriter, r *http.Request) {
@@ -77,73 +116,19 @@ func mockFour(w http.ResponseWriter, r *http.Request) {
 }
 
 func mockRouter() *mux.Router {
-	baseUrl := "/system/healt/report/test"
+	var (
+		health     = "/system/health/v1/report"
+		cosmos     = "/package/list"
+		frameworks = "/frameworks"
+		mesosStats = "/metrics/snapshot"
+	)
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc(baseUrl, mockReportHandler).Methods("GET")
-	router.HandleFunc(fmt.Sprintf("%s/badjson", baseUrl), mockBadJson).Methods("GET")
-	router.HandleFunc(fmt.Sprintf("%s/500", baseUrl), mockFive).Methods("GET")
-	router.HandleFunc(fmt.Sprintf("%s/400", baseUrl), mockFour).Methods("GET")
+	router.HandleFunc(health, mockHealthReportHandler).Methods("GET")
+	router.HandleFunc(frameworks, mockFrameworksHandler).Methods("GET")
+	router.HandleFunc(mesosStats, mockMesosStatsHandler).Methods("GET")
+	router.HandleFunc(cosmos, mockCosmosReportHandler).Methods("POST")
+	router.HandleFunc(fmt.Sprintf("%s/badjson", health), mockBadJson).Methods("GET")
+	router.HandleFunc(fmt.Sprintf("%s/500", health), mockFive).Methods("GET")
+	router.HandleFunc(fmt.Sprintf("%s/400", health), mockFour).Methods("GET")
 	return router
-}
-
-func TestSignalRunner(t *testing.T) {
-	var (
-		healthServer = httptest.NewServer(mockRouter())
-		port, _      = strconv.Atoi(strings.Split(healthServer.URL, ":")[2])
-		ip           = strings.Split(strings.Split(healthServer.URL, ":")[1], "/")[1]
-
-		cOk       = config.DefaultConfig()
-		badJson   = config.DefaultConfig()
-		badUserId = config.DefaultConfig()
-		badHost   = config.DefaultConfig()
-		version   = config.DefaultConfig()
-		verbose   = config.DefaultConfig()
-	)
-
-	cOk.HealthAPIPort = port
-	cOk.HealthHost = ip
-	cOk.HealthEndpoint = "/system/healt/report/test"
-	cOk.CustomerKey = "12345"
-
-	verbose.FlagVerbose = true
-	verbose.HealthAPIPort = port
-	verbose.HealthHost = ip
-	verbose.HealthEndpoint = "/system/healt/report/test"
-	verbose.CustomerKey = "12345"
-
-	badUserId.HealthAPIPort = port
-	badUserId.HealthHost = ip
-	badUserId.HealthEndpoint = "/system/healt/report/test"
-
-	badJson.HealthAPIPort = port
-	badJson.HealthHost = ip
-	badJson.CustomerKey = "12345"
-	badJson.HealthEndpoint = "/system/health/report/test/badjson"
-
-	badHost.HealthEndpoint = "/system/healt/report/test"
-	badHost.CustomerKey = "12345"
-	badHost.HealthAPIPort = 80
-	badHost.HealthHost = "localhost"
-
-	version.FlagVersion = true
-
-	var (
-		errOk     = executeRunner(cOk)
-		errJson   = executeRunner(badJson)
-		errUserId = executeRunner(badUserId)
-		errHost   = executeRunner(badHost)
-	)
-
-	if errOk != nil {
-		t.Error("Expected nil error with good config, got ", errOk)
-	}
-	if errJson == nil {
-		t.Error("Expected bad JSON to throw err, got ", errJson)
-	}
-	if errHost == nil {
-		t.Error("Expected bad route to host error, got ", errHost)
-	}
-	if errUserId == nil {
-		t.Error("Expected bad segment user ID to throw err, got ", errUserId)
-	}
 }

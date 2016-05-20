@@ -8,20 +8,13 @@ import (
 
 func TestDefaultConfig(t *testing.T) {
 	expectedDefault := Config{
-		HealthAPIPort:           1050,
-		HealthEndpoint:          "/system/health/v1/report",
-		HealthHost:              "localhost",
 		SegmentEvent:            "health",
-		SegmentKey:              "",
-		CustomerKey:             "",
 		ClusterID:               "",
 		DCOSVersion:             "",
 		DCOSClusterIDPath:       "/var/lib/dcos/cluster-id",
 		SignalServiceConfigPath: "/opt/mesosphere/etc/dcos-signal-config.json",
 		ExtraJSONConfigPath:     "/opt/mesosphere/etc/dcos-signal-extra.json",
-		FlagEE:                  false,
 		DCOSVariant:             "UNSET",
-		GenProvider:             "",
 	}
 	gotDefault := DefaultConfig()
 	if gotDefault != expectedDefault {
@@ -48,16 +41,6 @@ func TestFlagParsing(t *testing.T) {
 
 		versionConfig, versionErr = ParseArgsReturnConfig([]string{
 			"-version",
-			"-cluster-id-path", tempAnonJson.Name(),
-			"-c", tempConfig.Name()})
-
-		reportHostConfig, hostErr = ParseArgsReturnConfig([]string{
-			"-report-host", "10.0.0.1",
-			"-cluster-id-path", tempAnonJson.Name(),
-			"-c", tempConfig.Name()})
-
-		reportPortConfig, portErr = ParseArgsReturnConfig([]string{
-			"-report-port", "8080",
 			"-cluster-id-path", tempAnonJson.Name(),
 			"-c", tempConfig.Name()})
 
@@ -99,22 +82,6 @@ func TestFlagParsing(t *testing.T) {
 	if versionErr != nil {
 		t.Error("Expected nil, got ", versionErr)
 	}
-
-	// -report-host
-	if reportHostConfig.HealthHost != "10.0.0.1" {
-		t.Error("Expected 10.0.0.1, got ", reportHostConfig.HealthHost)
-	}
-	if hostErr != nil {
-		t.Error("Expected nil, got ", hostErr)
-	}
-
-	// -report-port
-	if reportPortConfig.HealthAPIPort != 8080 {
-		t.Error("Expected 8080, got ", reportPortConfig.HealthAPIPort)
-	}
-	if portErr != nil {
-		t.Error("Expected nil, got ", portErr)
-	}
 }
 
 func TestGetClusterID(t *testing.T) {
@@ -136,32 +103,7 @@ func TestGetClusterID(t *testing.T) {
 }
 
 func TestGetExternalConfig(t *testing.T) {
-	// Test basic config
-	config := []byte(`
-		{
-			"customer_key": "foo-123-bar",
-			"gen_provider": "onprem"	
-		}`)
-	tempConfig, _ := ioutil.TempFile(os.TempDir(), "")
 
-	defer os.Remove(tempConfig.Name())
-
-	tempConfig.Write(config)
-	c := DefaultConfig()
-	c.SignalServiceConfigPath = tempConfig.Name()
-
-	if err := c.getExternalConfig(); err != nil {
-		t.Error("Expected config, got ", err)
-	}
-
-	if c.CustomerKey != "foo-123-bar" {
-		t.Error("Expected customer ID to be foo-123-bar, got ", c.CustomerKey)
-	}
-	if c.GenProvider != "onprem" {
-		t.Error("Expected onprem, got ", c.GenProvider)
-	}
-
-	// Test no enterprise
 	noEntConfig := []byte(`
 		{
 			"customer_key": "",
@@ -186,5 +128,4 @@ func TestGetExternalConfig(t *testing.T) {
 	if noEntC.GenProvider != "onprem" {
 		t.Error("Expected onprem, got ", noEntC.GenProvider)
 	}
-
 }
