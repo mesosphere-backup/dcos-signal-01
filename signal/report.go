@@ -18,6 +18,7 @@ type Report interface {
 	GetHeaders() map[string]string
 	SetReport([]byte) error
 	GetReport() interface{}
+	Track(config.Config) error
 }
 
 func PullReport(r Report, c config.Config) error {

@@ -3,10 +3,7 @@ package signal
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
-	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/dcos/dcos-signal/config"
@@ -33,31 +30,28 @@ func executeRunner(c config.Config) error {
 		diagnostics = Diagnostics{
 			URL:    c.DiagnosticsURL,
 			Method: "GET",
+			Headers: map[string]string{
+				"Content-Type": "application/json",
+			},
 		}
 	)
 
-	healthReport, err := pullHealthReport(healthURL, c.HealthEndpoint)
-	if err != nil {
-		log.Error("==> ERROR GETTING REPORT.")
-		log.Error("Are you sure the URL, endport and port are correct?")
+	if err := PullReport(&diagnostics, c); err != nil {
+		log.Error("Error getting diagnostics report")
 		return err
 	}
 
-	log.Info("Retrieved health report from ", c.HealthHost, ":", c.HealthAPIPort, c.HealthEndpoint)
-
-	ac := CreateSegmentClient(c.SegmentKey, c.FlagVerbose)
-	track, test := CreateSegmentTrack(healthReport, c)
 	if c.TestFlag {
-		pretty, _ := json.MarshalIndent(test, "", "    ")
+		pretty, _ := json.MarshalIndent(diagnostics.GetReport(), "", "    ")
 		fmt.Printf(string(pretty))
 		return nil
-	}
-	if err := ac.Track(track); err != nil {
-		log.Error(err)
-		return err
+	} else {
+		if err := diagnostics.Track(c); err != nil {
+			log.Error("Error sending diagnostics track data")
+			return err
+		}
 	}
 
-	ac.Close()
 	log.Info("==> SUCCESS")
 	return nil
 }
