@@ -42,8 +42,8 @@ type Config struct {
 // DefaultConfig returns default Config{}
 func DefaultConfig() Config {
 	return Config{
-		DiagnosticsURL: "localhost/system/health/v1/report",
-		CosmosURL:      "localhost/package/list",
+		DiagnosticsURL: "http://localhost:1050/system/health/v1/report",
+		CosmosURL:      "http://localhost:7070/package/list",
 
 		SegmentEvent:            "health",
 		SegmentKey:              "",
