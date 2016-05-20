@@ -41,6 +41,7 @@ type Diagnostics struct {
 	URL     string
 	Method  string
 	Headers map[string]string
+	Track   *analytics.Track
 }
 
 func (d *Diagnostics) SetReport(body []byte) error {
@@ -80,9 +81,7 @@ func (d *Diagnostics) GetMethod() string {
 	return d.Method
 }
 
-func (d *Diagnostics) Track(c config.Config) error {
-	ac := CreateSegmentClient(c.SegmentKey, c.FlagVerbose)
-	defer ac.Close()
+func (d *Diagnostics) SetTrack(c config.Config) error {
 	properties := make(map[string]interface{})
 	properties["source"] = "cluster"
 	properties["customerKey"] = c.CustomerKey
@@ -109,13 +108,24 @@ func (d *Diagnostics) Track(c config.Config) error {
 		properties[segmentUnitTotalKey] = totalUnits
 		properties[segmentUnitUnhealthyKey] = totalUnhealthyUnits
 	}
-
-	if err := ac.Track(&analytics.Track{
+	d.Track = &analytics.Track{
 		Event:       c.SegmentEvent,
 		UserId:      c.CustomerKey,
 		AnonymousId: c.ClusterID,
 		Properties:  properties,
-	}); err != nil {
+	}
+	return nil
+}
+
+func (d *Diagnostics) GetTrack() *analytics.Track {
+	return d.Track
+}
+
+func (d *Diagnostics) SendTrack(c config.Config) error {
+	ac := CreateSegmentClient(c.SegmentKey, c.FlagVerbose)
+	defer ac.Close()
+
+	if err := ac.Track(d.GetTrack()); err != nil {
 		return err
 	}
 	return nil
