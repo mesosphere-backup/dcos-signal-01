@@ -8,6 +8,11 @@
 			"revisionTime": "2015-09-08T20:46:18Z"
 		},
 		{
+			"path": "github.com/dgrijalva/jwt-go",
+			"revision": "40bd0f3b4891a9d7f121bfb7b8e8b0525625e262",
+			"revisionTime": "2016-05-04T10:25:48-07:00"
+		},
+		{
 			"path": "github.com/gorilla/context",
 			"revision": "1c83b3eabd45b6d76072b66b746c20815fb2872d",
 			"revisionTime": "2015-08-19T22:12:45-07:00"

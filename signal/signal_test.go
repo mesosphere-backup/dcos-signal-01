@@ -77,7 +77,7 @@ func mockFour(w http.ResponseWriter, r *http.Request) {
 }
 
 func mockRouter() *mux.Router {
-	baseUrl := "/system/healt/report/test"
+	baseUrl := "/system/health/report/test"
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc(baseUrl, mockReportHandler).Methods("GET")
 	router.HandleFunc(fmt.Sprintf("%s/badjson", baseUrl), mockBadJson).Methods("GET")
@@ -91,6 +91,7 @@ func TestSignalRunner(t *testing.T) {
 		healthServer = httptest.NewServer(mockRouter())
 		port, _      = strconv.Atoi(strings.Split(healthServer.URL, ":")[2])
 		ip           = strings.Split(strings.Split(healthServer.URL, ":")[1], "/")[1]
+		endpoint     = "/system/health/report/test"
 
 		cOk       = config.DefaultConfig()
 		badJson   = config.DefaultConfig()
@@ -100,38 +101,28 @@ func TestSignalRunner(t *testing.T) {
 		verbose   = config.DefaultConfig()
 	)
 
-	cOk.HealthAPIPort = port
-	cOk.HealthHost = ip
-	cOk.HealthEndpoint = "/system/healt/report/test"
+	cOk.DiagnosticsURL = fmt.Sprintf("http://%s:%d/%s", ip, port, endpoint)
 	cOk.CustomerKey = "12345"
 
 	verbose.FlagVerbose = true
-	verbose.HealthAPIPort = port
-	verbose.HealthHost = ip
-	verbose.HealthEndpoint = "/system/healt/report/test"
+	verbose.DiagnosticsURL = fmt.Sprintf("http://%s:%d/%s", ip, port, endpoint)
+
 	verbose.CustomerKey = "12345"
 
-	badUserId.HealthAPIPort = port
-	badUserId.HealthHost = ip
-	badUserId.HealthEndpoint = "/system/healt/report/test"
+	badUserId.DiagnosticsURL = fmt.Sprintf("http://%s:%d/%s", ip, port, endpoint)
 
-	badJson.HealthAPIPort = port
-	badJson.HealthHost = ip
 	badJson.CustomerKey = "12345"
-	badJson.HealthEndpoint = "/system/health/report/test/badjson"
+	badJson.DiagnosticsURL = fmt.Sprintf("http://%s:%d/%s/badjson", ip, port, endpoint)
 
-	badHost.HealthEndpoint = "/system/healt/report/test"
 	badHost.CustomerKey = "12345"
-	badHost.HealthAPIPort = 80
-	badHost.HealthHost = "localhost"
+	badHost.DiagnosticsURL = "http://foo"
 
 	version.FlagVersion = true
 
 	var (
-		errOk     = executeRunner(cOk)
-		errJson   = executeRunner(badJson)
-		errUserId = executeRunner(badUserId)
-		errHost   = executeRunner(badHost)
+		errOk   = executeRunner(cOk)
+		errJson = executeRunner(badJson)
+		errHost = executeRunner(badHost)
 	)
 
 	if errOk != nil {
@@ -142,8 +133,5 @@ func TestSignalRunner(t *testing.T) {
 	}
 	if errHost == nil {
 		t.Error("Expected bad route to host error, got ", errHost)
-	}
-	if errUserId == nil {
-		t.Error("Expected bad segment user ID to throw err, got ", errUserId)
 	}
 }
