@@ -11,10 +11,9 @@ var VARIANT = "UNSET"
 
 // Config defines dcos-signal configuration
 type Config struct {
-	// 3DT Settings
-	HealthAPIPort  int
-	HealthEndpoint string
-	HealthHost     string
+	// Service URLs
+	DiagnosticsURL string `json:"diagnostics_url"`
+	CosmosURL      string `json:"cosmos_url"`
 
 	// Segment IO Settings
 	SegmentKey   string
@@ -43,9 +42,9 @@ type Config struct {
 // DefaultConfig returns default Config{}
 func DefaultConfig() Config {
 	return Config{
-		HealthAPIPort:           1050,
-		HealthEndpoint:          "/system/health/v1/report",
-		HealthHost:              "localhost",
+		DiagnosticsURL: "http://localhost:1050/system/health/v1/report",
+		CosmosURL:      "http://localhost:7070/package/list",
+
 		SegmentEvent:            "health",
 		SegmentKey:              "",
 		CustomerKey:             "",
@@ -64,9 +63,6 @@ func DefaultConfig() Config {
 func (c *Config) setFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&c.FlagVerbose, "v", c.FlagVerbose, "Verbose logging mode.")
 	fs.BoolVar(&c.FlagVersion, "version", c.FlagVersion, "Print version and exit.")
-	fs.StringVar(&c.HealthHost, "report-host", c.HealthHost, "Override the default host to query the health report from.")
-	fs.IntVar(&c.HealthAPIPort, "report-port", c.HealthAPIPort, "Override the default health API port.")
-	fs.StringVar(&c.HealthEndpoint, "report-endpoint", c.HealthEndpoint, "Override default health endpoint.")
 	fs.StringVar(&c.DCOSClusterIDPath, "cluster-id-path", c.DCOSClusterIDPath, "Override path to DCOS anonymous ID.")
 	fs.BoolVar(&c.FlagEE, "ee", c.FlagEE, "Set the EE flag.")
 	fs.StringVar(&c.SignalServiceConfigPath, "c", c.SignalServiceConfigPath, "Path to dcos-signal-service.conf.")
@@ -97,6 +93,7 @@ func (c *Config) getExternalConfig() error {
 			return jsonErr
 		}
 	}
+
 	return nil
 }
 
