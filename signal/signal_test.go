@@ -77,7 +77,7 @@ func mockFour(w http.ResponseWriter, r *http.Request) {
 }
 
 func mockRouter() *mux.Router {
-	baseUrl := "/system/healt/report/test"
+	baseUrl := "/system/health/report/test"
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc(baseUrl, mockReportHandler).Methods("GET")
 	router.HandleFunc(fmt.Sprintf("%s/badjson", baseUrl), mockBadJson).Methods("GET")
@@ -91,7 +91,7 @@ func TestSignalRunner(t *testing.T) {
 		healthServer = httptest.NewServer(mockRouter())
 		port, _      = strconv.Atoi(strings.Split(healthServer.URL, ":")[2])
 		ip           = strings.Split(strings.Split(healthServer.URL, ":")[1], "/")[1]
-		endpoint     = "/system/healt/report/test"
+		endpoint     = "/system/health/report/test"
 
 		cOk       = config.DefaultConfig()
 		badJson   = config.DefaultConfig()

@@ -11,7 +11,7 @@ import (
 var (
 	healthServer = httptest.NewServer(mockRouter())
 	testDiag     = Diagnostics{
-		URL:    fmt.Sprintf("%s/system/health/v1/report/test", healthServer.URL),
+		URL:    fmt.Sprintf("%s/system/health/report/test", healthServer.URL),
 		Method: "GET",
 	}
 )
