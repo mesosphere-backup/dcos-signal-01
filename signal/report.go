@@ -10,7 +10,7 @@ import (
 	"github.com/segmentio/analytics-go"
 )
 
-type Report interface {
+type Reporter interface {
 	SetURL(string)
 	GetURL() string
 	SetMethod(string)
@@ -24,7 +24,7 @@ type Report interface {
 	SendTrack(config.Config) error
 }
 
-func PullReport(r Report, c config.Config) error {
+func PullReport(r Reporter, c config.Config) error {
 	log.Warn("TLS Disabled")
 	url := r.GetURL()
 	method := r.GetMethod()
