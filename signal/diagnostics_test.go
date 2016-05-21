@@ -17,7 +17,6 @@ var (
 )
 
 func TestDiagnosticsTrack(t *testing.T) {
-
 	c := config.DefaultConfig()
 	c.CustomerKey = "12345"
 	c.ClusterID = "anon"
