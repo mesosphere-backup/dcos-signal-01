@@ -46,7 +46,7 @@ type Config struct {
 	ID         string `json:"uid"`
 	SecretPath string `json:"secret_path"`
 	Secret     string
-	JwtToken   string
+	JWTToken   string
 }
 
 // DefaultConfig returns default Config{}
@@ -88,7 +88,7 @@ func (c *Config) generateJWTToken() error {
 	if err != nil {
 		return err
 	}
-	c.JwtToken = tokenStr
+	c.JWTToken = tokenStr
 	return nil
 }
 
