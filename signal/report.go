@@ -1,8 +1,11 @@
 package signal
 
 import (
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -25,28 +28,40 @@ type Reporter interface {
 }
 
 func PullReport(r Reporter, c config.Config) error {
-	log.Warn("TLS Disabled")
-	url := r.GetURL()
-	method := r.GetMethod()
-	headers := r.GetHeaders()
+	log.Debugf("Attempting to pull report from %s", r.GetURL())
+	url, err := url.Parse(r.GetURL())
+	if err != nil {
+		return err
+	}
 
-	log.Debugf("Attempting to pull report from %s", url)
 	client := http.Client{
 		Timeout: time.Duration(time.Second),
 	}
 
-	req, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return err
+	req := &http.Request{
+		Method: r.GetMethod(),
+		URL:    url,
 	}
+	headers := r.GetHeaders()
 	if len(headers) > 0 {
 		for headerName, headerValue := range headers {
 			// ex. headerName = "Content-Type" and headerValue = "application/json"
 			req.Header.Set(headerName, headerValue)
 		}
 	}
+	// Add the JWT token to the headers if this is a secure request
+	if url.Scheme == "https" {
+		if len(c.JWTToken) > 0 {
+			bearer := fmt.Sprintf("Bearer %s", c.JWTToken)
+			log.Warnf("Authorization: %s", bearer)
+			req.Header.Set("Authorization", bearer)
+		} else {
+			return errors.New("HTTPS requested but no JWT token created.")
+		}
+	}
 
 	resp, err := client.Do(req)
+	defer resp.Body.Close()
 	if err != nil {
 		return err
 	}
@@ -55,7 +70,6 @@ func PullReport(r Reporter, c config.Config) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
 
 	if err := r.SetReport(body); err != nil {
 		return err
