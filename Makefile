@@ -26,9 +26,9 @@ build:
 	@echo "+$@"
 	go build -v -o signal_'$(VERSION)' -ldflags '$(LDFLAGS)' dcos_signal.go
 
-build-linux: 
+linux: 
 	@echo "+$@"
-	GOOS=linux go build -v -ldflags '$(LDFLAGS)' $(FILES)
+	GOOS=linux go build -v -o signal_'$(VERSION)'_linux -ldflags '$(LDFLAGS)' dcos_signal.go 
 
 
 install:
