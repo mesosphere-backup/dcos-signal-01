@@ -50,13 +50,14 @@ func PullReport(r Reporter, c config.Config) error {
 	req := &http.Request{
 		Method: r.GetMethod(),
 		URL:    url,
+		Header: http.Header{},
 	}
 	headers := r.GetHeaders()
-	fmt.Printf("%+v", headers)
 	if len(headers) > 0 {
 		for headerName, headerValue := range headers {
 			// ex. headerName = "Content-Type" and headerValue = "application/json"
-			req.Header.Set(headerName, headerValue)
+			req.Header.Add(headerName, headerValue)
+
 		}
 	}
 	// Add the JWT token to the headers if this is a secure request
@@ -66,7 +67,7 @@ func PullReport(r Reporter, c config.Config) error {
 		log.Warnf("HTTPS Enabled: Authorization: %s", bearer)
 		req.Header.Set("Authorization", bearer)
 	} else {
-		return errors.New("HTTPS requested but no JWT token created.")
+		log.Warn("No JWT token present, making insecure request.")
 	}
 
 	resp, err := client.Do(req)
@@ -79,6 +80,7 @@ func PullReport(r Reporter, c config.Config) error {
 	if err != nil {
 		return err
 	}
+	log.Debugf("Successful request to %s", r.GetURL())
 
 	if err := r.SetReport(body); err != nil {
 		return err

@@ -31,7 +31,7 @@ func executeRunner(c config.Config) error {
 			URL:    c.DiagnosticsURL,
 			Method: "GET",
 			Headers: map[string]string{
-				"Content-Type": "application/json",
+				"content-type": "application/json",
 			},
 		}
 	)
