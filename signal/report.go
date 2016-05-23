@@ -50,14 +50,13 @@ func PullReport(r Reporter, c config.Config) error {
 		}
 	}
 	// Add the JWT token to the headers if this is a secure request
-	if url.Scheme == "https" {
-		if len(c.JWTToken) > 0 {
-			bearer := fmt.Sprintf("Bearer %s", c.JWTToken)
-			log.Warnf("Authorization: %s", bearer)
-			req.Header.Set("Authorization", bearer)
-		} else {
-			return errors.New("HTTPS requested but no JWT token created.")
-		}
+	if len(c.JWTToken) > 0 {
+		bearer := fmt.Sprintf("token=%s", c.JWTToken)
+		// Removing this for production, here for debugging
+		log.Warnf("HTTPS Enabled: Authorization: %s", bearer)
+		req.Header.Set("Authorization", bearer)
+	} else {
+		return errors.New("HTTPS requested but no JWT token created.")
 	}
 
 	resp, err := client.Do(req)
