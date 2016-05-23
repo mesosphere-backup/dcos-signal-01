@@ -52,6 +52,7 @@ func PullReport(r Reporter, c config.Config) error {
 		URL:    url,
 	}
 	headers := r.GetHeaders()
+	fmt.Printf("%+v", headers)
 	if len(headers) > 0 {
 		for headerName, headerValue := range headers {
 			// ex. headerName = "Content-Type" and headerValue = "application/json"
