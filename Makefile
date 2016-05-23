@@ -24,7 +24,7 @@ test:
 
 build: 
 	@echo "+$@"
-	go build -v -ldflags '$(LDFLAGS)' $(FILES)
+	go build -v -o signal_'$(VERSION)' -ldflags '$(LDFLAGS)' dcos_signal.go
 
 build-linux: 
 	@echo "+$@"
