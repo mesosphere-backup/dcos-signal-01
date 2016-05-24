@@ -64,10 +64,10 @@ func PullReport(r Reporter, c config.Config) error {
 	if len(c.JWTToken) > 0 {
 		bearer := fmt.Sprintf("token=%s", c.JWTToken)
 		// Removing this for production, here for debugging
-		log.Warnf("HTTPS Enabled: Authorization: %s", bearer)
+		log.Debug("Making request with authorization bearer")
 		req.Header.Set("Authorization", bearer)
 	} else {
-		log.Warn("No JWT token present, making insecure request.")
+		log.Warn("No JWT token present, making anonymous request")
 	}
 
 	resp, err := client.Do(req)
