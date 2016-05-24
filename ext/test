@@ -1,4 +1,9 @@
 #/bin/bash
+set -e
+
 IP=$1
+
 echo "Forwarding localhost:1050 -> ${IP}:1050"
-ssh -i ~/.ssh/mesos_dev.pem -N -L 1050:localhost:1050 core@$IP -v
+ssh -i ~/.ssh/mesos_dev.pem -o 'ControlMaster auto' -o 'ControlPath ./diagnostics.sock' -N -f -L 1050:localhost:1050 core@$IP
+echo "Forwarding localhost:7070 -> ${IP}:7070"
+ssh -i ~/.ssh/mesos_dev.pem -o 'ControlMaster auto' -o 'ControlPath ./cosmos.sock' -N -f -L 7070:localhost:7070 core@$IP 

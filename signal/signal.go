@@ -34,18 +34,25 @@ func executeRunner(c config.Config) error {
 				"content-type": "application/json",
 			},
 		}
+
+		cosmos = Cosmos{
+			URL:    c.CosmosURL,
+			Method: "POST",
+			Headers: map[string]string{
+				"content-type": "application/vnd.dcos.package.list-request",
+			},
+		}
 	)
 
+	// Diagnostics
 	if err := PullReport(&diagnostics, c); err != nil {
 		log.Error("Error getting diagnostics report")
 		return err
 	}
-
 	if err := diagnostics.SetTrack(c); err != nil {
 		log.Error("Unable to set diagnostics .track, ", err)
 		return err
 	}
-
 	if c.TestFlag {
 		pretty, _ := json.MarshalIndent(diagnostics.GetTrack(), "", "    ")
 		fmt.Printf(string(pretty))
@@ -56,6 +63,8 @@ func executeRunner(c config.Config) error {
 			return err
 		}
 	}
+
+	// Package List from Cosmos
 
 	log.Info("==> SUCCESS")
 	return nil
