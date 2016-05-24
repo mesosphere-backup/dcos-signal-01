@@ -2,6 +2,7 @@ package signal
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
@@ -19,6 +20,27 @@ type test struct {
 	UserId     string
 	ClusterId  string
 	Properties map[string]interface{}
+}
+
+func runner(r Reporter, c config.Config) error {
+	if err := PullReport(r, c); err == nil {
+		if err := r.SetTrack(c); err == nil {
+			if c.TestFlag {
+				pretty, _ := json.MarshalIndent(r.GetTrack(), "", "    ")
+				fmt.Printf(string(pretty))
+				return nil
+			} else {
+				if err := r.SendTrack(c); err != nil {
+					return err
+				}
+			}
+		} else {
+			return err
+		}
+	} else {
+		return err
+	}
+	return nil
 }
 
 // StartSignalRunner accepts Config and runs the signal service once. It returns
@@ -42,31 +64,25 @@ func executeRunner(c config.Config) error {
 				"content-type": "application/vnd.dcos.package.list-request",
 			},
 		}
+
+		errored = []error{}
 	)
 
-	// Diagnostics
-	if err := PullReport(&diagnostics, c); err != nil {
-		log.Error("Error getting diagnostics report")
-		return err
+	if err := runner(&diagnostics, c); err != nil {
+		errored = append(errored, err)
 	}
-	if err := diagnostics.SetTrack(c); err != nil {
-		log.Error("Unable to set diagnostics .track, ", err)
-		return err
+
+	if err := runner(&cosmos, c); err != nil {
+		errored = append(errored, err)
 	}
-	if c.TestFlag {
-		pretty, _ := json.MarshalIndent(diagnostics.GetTrack(), "", "    ")
-		fmt.Printf(string(pretty))
-		return nil
-	} else {
-		if err := diagnostics.SendTrack(c); err != nil {
-			log.Error("Error sending diagnostics track data")
-			return err
+
+	if len(errored) > 0 {
+		for _, err := range errored {
+			log.Error(err)
 		}
+		return errors.New("Errors encountered executing report runners")
 	}
 
-	// Package List from Cosmos
-
-	log.Info("==> SUCCESS")
 	return nil
 }
 
