@@ -1,0 +1,4 @@
+#/bin/bash
+IP=$1
+echo "Forwarding localhost:1050 -> ${IP}:1050"
+ssh -i ~/.ssh/mesos_dev.pem -N -L 1050:localhost:1050 core@$IP -v

@@ -81,6 +81,7 @@ func (c *Config) setFlags(fs *flag.FlagSet) {
 
 func (c *Config) generateJWTToken() error {
 	if len(c.Secret) > 0 {
+		log.Debug("Generating JWT token")
 		token := jwt.New(jwt.SigningMethodRS256)
 		token.Claims["uid"] = c.ID
 		token.Claims["exp"] = time.Now().Add(time.Hour).Unix()
