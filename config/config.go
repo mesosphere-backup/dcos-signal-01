@@ -151,6 +151,8 @@ func ParseArgsReturnConfig(args []string) (Config, []error) {
 		if err := c.generateJWTToken(); err != nil {
 			errAry = append(errAry, err)
 		}
+	} else {
+		log.Warn("UID and Secret appear to be empty, not generating JWT token.")
 	}
 
 	if len(errAry) > 0 {

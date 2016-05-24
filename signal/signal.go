@@ -84,7 +84,9 @@ func Start() {
 		// data to segment even if we can't find things like the anon uuid file or
 		// signal service config json since those would indicate that something is
 		// no right, and signal service is all about surfacing that kind of data.
-		log.Error(configErr)
+		for _, err := range configErr {
+			log.Error(err)
+		}
 	}
 	if err := executeRunner(config); err != nil {
 		log.Error(err)
