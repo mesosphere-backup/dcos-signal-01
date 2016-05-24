@@ -71,10 +71,10 @@ func PullReport(r Reporter, c config.Config) error {
 	}
 
 	resp, err := client.Do(req)
-	defer resp.Body.Close()
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
