@@ -28,7 +28,7 @@ func runner(r Reporter, c config.Config) error {
 			if c.TestFlag {
 				pretty, _ := json.MarshalIndent(r.GetTrack(), "", "    ")
 				fmt.Printf(string(pretty))
-				return nil
+				log.Info("====> DONE")
 			} else {
 				if err := r.SendTrack(c); err != nil {
 					return err
@@ -68,6 +68,7 @@ func executeRunner(c config.Config) error {
 		errored = []error{}
 	)
 
+	// Might want to declare a []Reporter and do this async once we get a few more.
 	if err := runner(&diagnostics, c); err != nil {
 		errored = append(errored, err)
 	}

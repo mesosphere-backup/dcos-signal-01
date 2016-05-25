@@ -61,8 +61,16 @@ func (c *Cosmos) GetMethod() string {
 
 func (c *Cosmos) SetTrack(config config.Config) error {
 	properties := make(map[string]interface{})
+	properties["package_list"] = c.Report.Packages
+	properties["source"] = "cluster"
+	properties["customerKey"] = config.CustomerKey
+	properties["environmentVersion"] = config.DCOSVersion
+	properties["clusterId"] = config.ClusterID
+	properties["variant"] = config.DCOSVariant
+	properties["provider"] = config.GenProvider
+
 	c.Track = &analytics.Track{
-		Event:       config.SegmentEvent,
+		Event:       "package_list",
 		UserId:      config.CustomerKey,
 		AnonymousId: config.ClusterID,
 		Properties:  properties,
