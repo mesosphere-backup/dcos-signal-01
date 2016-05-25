@@ -1,9 +1,6 @@
 package signal
 
 import (
-	//	"fmt"
-	"fmt"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/dcos/dcos-signal/config"
@@ -11,18 +8,18 @@ import (
 )
 
 type testReportType struct {
-	URL     string
-	Headers map[string]string
-	Method  string
-	Report  string
+	Endpoints []string
+	Headers   map[string]string
+	Method    string
+	Report    string
 }
 
-func (t *testReportType) SetURL(url string) {
-	t.URL = url
+func (t *testReportType) SetEndpoints(url []string) {
+	t.Endpoints = url
 }
 
-func (t *testReportType) GetURL() string {
-	return t.URL
+func (t *testReportType) GetEndpoints() []string {
+	return t.Endpoints
 }
 
 func (t *testReportType) SetMethod(meth string) {
@@ -64,20 +61,18 @@ func (t *testReportType) SendTrack(config.Config) error {
 
 func TestPullHealthReport(t *testing.T) {
 	var (
-		server = httptest.NewServer(mockRouter())
-		tr     = testReportType{
-			URL:    server.URL,
+		tr = testReportType{
+			Endpoints: []string{
+				"/package/list",
+			},
 			Method: "GET",
 		}
-		tc = config.Config{}
+		tc = config.Config{
+			MasterURL: server.URL,
+		}
 	)
 
-	// Get the good report first
 	goodReportErr := PullReport(&tr, tc)
-
-	// Break it with bad JSON
-	tr.URL = fmt.Sprintf("%s/500", server.URL)
-
 	if goodReportErr != nil {
 		t.Error("Expected nil error, got ", goodReportErr.Error)
 	}

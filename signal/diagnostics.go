@@ -37,19 +37,17 @@ type Node struct {
 }
 
 type Diagnostics struct {
-	Report  *HealthReport
-	URL     string
-	Method  string
-	Headers map[string]string
-	Track   *analytics.Track
+	Report    *HealthReport
+	Endpoints []string
+	Method    string
+	Headers   map[string]string
+	Track     *analytics.Track
 }
 
 func (d *Diagnostics) SetReport(body []byte) error {
-	var hr *HealthReport
-	if err := json.Unmarshal(body, &hr); err != nil {
+	if err := json.Unmarshal(body, &d.Report); err != nil {
 		return err
 	}
-	d.Report = hr
 	return nil
 }
 
@@ -65,12 +63,12 @@ func (d *Diagnostics) GetHeaders() map[string]string {
 	return d.Headers
 }
 
-func (d *Diagnostics) SetURL(url string) {
-	d.URL = url
+func (d *Diagnostics) SetEndpoints(url []string) {
+	d.Endpoints = url
 }
 
-func (d *Diagnostics) GetURL() string {
-	return d.URL
+func (d *Diagnostics) GetEndpoints() []string {
+	return d.Endpoints
 }
 
 func (d *Diagnostics) SetMethod(method string) {
@@ -82,13 +80,14 @@ func (d *Diagnostics) GetMethod() string {
 }
 
 func (d *Diagnostics) SetTrack(c config.Config) error {
-	properties := make(map[string]interface{})
-	properties["source"] = "cluster"
-	properties["customerKey"] = c.CustomerKey
-	properties["environmentVersion"] = c.DCOSVersion
-	properties["clusterId"] = c.ClusterID
-	properties["variant"] = c.DCOSVariant
-	properties["provider"] = c.GenProvider
+	properties := map[string]interface{}{
+		"source":             "cluster",
+		"customerKey":        c.CustomerKey,
+		"environmentVersion": c.DCOSVersion,
+		"clusterId":          c.ClusterID,
+		"variant":            c.DCOSVariant,
+		"provider":           c.GenProvider,
+	}
 
 	for _, unit := range d.Report.Units {
 		totalUnits := len(unit.Nodes)
@@ -125,8 +124,6 @@ func (d *Diagnostics) SendTrack(c config.Config) error {
 	ac := CreateSegmentClient(c.SegmentKey, c.FlagVerbose)
 	defer ac.Close()
 
-	if err := ac.Track(d.Track); err != nil {
-		return err
-	}
-	return nil
+	err := ac.Track(d.Track)
+	return err
 }

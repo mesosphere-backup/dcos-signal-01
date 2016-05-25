@@ -15,8 +15,8 @@ import (
 )
 
 type Reporter interface {
-	SetURL(string)
-	GetURL() string
+	SetEndpoints([]string)
+	GetEndpoints() []string
 	SetMethod(string)
 	GetMethod() string
 	SetHeaders(map[string]string)
@@ -29,59 +29,62 @@ type Reporter interface {
 }
 
 func PullReport(r Reporter, c config.Config) error {
-	log.Debugf("Attempting to pull report from %s", r.GetURL())
-	url, err := url.Parse(r.GetURL())
-	if err != nil {
-		return err
-	}
-
-	client := http.Client{
-		Timeout: time.Duration(5 * time.Second),
-	}
-
-	if url.Scheme == "https" {
-		client.Transport = &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	for _, endpoint := range r.GetEndpoints() {
+		requestURL := fmt.Sprintf("%s%s", c.MasterURL, endpoint)
+		log.Debugf("Attempting to pull report from %s", requestURL)
+		url, err := url.Parse(requestURL)
+		if err != nil {
+			return err
 		}
-	} else if url.Scheme != "http" {
-		return errors.New(fmt.Sprintf("Transport protocol not supported: %s", url.Scheme))
-	}
 
-	req := &http.Request{
-		Method: r.GetMethod(),
-		URL:    url,
-		Header: http.Header{},
-	}
-	headers := r.GetHeaders()
-	for headerName, headerValue := range headers {
-		// ex. headerName = "Content-Type" and headerValue = "application/json"
-		req.Header.Add(headerName, headerValue)
+		client := http.Client{
+			Timeout: time.Duration(5 * time.Second),
+		}
 
-	}
-	// Add the JWT token to the headers if this is a secure request
-	if len(c.JWTToken) > 0 {
-		bearer := fmt.Sprintf("token=%s", c.JWTToken)
-		// Removing this for production, here for debugging
-		log.Debug("Making request with authorization bearer")
-		req.Header.Set("Authorization", bearer)
-	} else {
-		log.Warn("No JWT token present, making anonymous request")
-	}
+		if url.Scheme == "https" {
+			client.Transport = &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			}
+		} else if url.Scheme != "http" {
+			return errors.New(fmt.Sprintf("Transport protocol not supported: %s", url.Scheme))
+		}
 
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
+		req := &http.Request{
+			Method: r.GetMethod(),
+			URL:    url,
+			Header: http.Header{},
+		}
+		headers := r.GetHeaders()
+		for headerName, headerValue := range headers {
+			// ex. headerName = "Content-Type" and headerValue = "application/json"
+			req.Header.Add(headerName, headerValue)
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	log.Debugf("Successful request to %s", r.GetURL())
+		}
+		// Add the JWT token to the headers if this is a secure request
+		if len(c.JWTToken) > 0 {
+			bearer := fmt.Sprintf("token=%s", c.JWTToken)
+			// Removing this for production, here for debugging
+			log.Debug("Making request with authorization bearer")
+			req.Header.Set("Authorization", bearer)
+		} else {
+			log.Warn("No JWT token present, making anonymous request")
+		}
 
-	if err := r.SetReport(body); err != nil {
-		return err
+		resp, err := client.Do(req)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		log.Debugf("Successful request to %s", requestURL)
+
+		if err := r.SetReport(body); err != nil {
+			return err
+		}
 	}
 
 	return nil

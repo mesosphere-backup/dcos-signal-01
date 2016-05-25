@@ -20,7 +20,7 @@ all: test install
 
 test:
 	@echo "+$@"
-	go test $(FILES)  -cover
+	go test $(FILES) -v -cover
 
 build: 
 	@echo "+$@"

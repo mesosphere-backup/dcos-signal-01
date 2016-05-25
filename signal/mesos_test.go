@@ -7,13 +7,16 @@ import (
 )
 
 var (
-	testCosmos = Cosmos{
-		Endpoints: []string{"/package/list"},
-		Method:    "POST",
+	testMesos = Mesos{
+		Endpoints: []string{
+			"/frameworks",
+			"/system/stats",
+		},
+		Method: "POST",
 	}
 )
 
-func TestCosmosTrack(t *testing.T) {
+func testMesosTrack(t *testing.T) {
 	c := config.DefaultConfig()
 	c.CustomerKey = "12345"
 	c.ClusterID = "anon"
@@ -22,17 +25,17 @@ func TestCosmosTrack(t *testing.T) {
 	c.DCOSVariant = "test_variant"
 	c.MasterURL = server.URL
 
-	pullErr := PullReport(&testCosmos, c)
+	pullErr := PullReport(&testMesos, c)
 	if pullErr != nil {
 		t.Error("Expected no errors pulling report from test server, got", pullErr)
 	}
 
-	setupErr := testCosmos.SetTrack(c)
+	setupErr := testMesos.SetTrack(c)
 	if setupErr != nil {
 		t.Error("Expected no errors setting up track, got", setupErr)
 	}
 
-	actualSegmentTrack := testCosmos.GetTrack()
+	actualSegmentTrack := testMesos.GetTrack()
 	if actualSegmentTrack.Event != "package_list" {
 		t.Error("Expected actualSegmentTrack.Event to be 'package_list', got ", actualSegmentTrack.Event)
 	}
@@ -69,11 +72,8 @@ func TestCosmosTrack(t *testing.T) {
 		t.Error("Expected environmenetVersion 'test_varsion', got ", actualSegmentTrack.Properties["environmentVersion"])
 	}
 
-	if len(actualSegmentTrack.Properties["package_list"].([]CosmosPackages)) != 1 {
-		t.Error("Expected 1 package in list, got", len(actualSegmentTrack.Properties["package_list"].([]CosmosPackages)))
+	if len(actualSegmentTrack.Properties["frameworks"].([]Framework)) != 2 {
+		t.Error("Expected 2 frameworks, got")
 	}
 
-	if actualSegmentTrack.Properties["package_list"].([]CosmosPackages)[0].AppID != "fooPackage" {
-		t.Error("Expected 'fooPackage', got", actualSegmentTrack.Properties["package_list"].([]CosmosPackages)[0].AppID)
-	}
 }

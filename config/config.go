@@ -16,8 +16,7 @@ var VARIANT = "UNSET"
 // Config defines dcos-signal configuration
 type Config struct {
 	// Service URLs
-	DiagnosticsURL string `json:"diagnostics_url"`
-	CosmosURL      string `json:"cosmos_url"`
+	MasterURL string `json:"master_url"`
 
 	// Segment IO Settings
 	SegmentKey   string
@@ -38,7 +37,6 @@ type Config struct {
 	// Optional CLI Flags
 	FlagVersion bool
 	FlagVerbose bool
-	FlagEE      bool
 	TestFlag    bool
 	Enabled     string `json:"enabled"`
 
@@ -51,18 +49,11 @@ type Config struct {
 // DefaultConfig returns default Config{}
 func DefaultConfig() Config {
 	return Config{
-		DiagnosticsURL: "http://localhost:1050/system/health/v1/report",
-		CosmosURL:      "http://localhost:7070/package/list",
-
+		MasterURL:               "http://localhost",
 		SegmentEvent:            "health",
-		SegmentKey:              "",
-		CustomerKey:             "",
-		ClusterID:               "",
 		DCOSVersion:             os.Getenv("DCOS_VERSION"),
 		DCOSClusterIDPath:       "/var/lib/dcos/cluster-id",
-		FlagEE:                  false,
 		DCOSVariant:             VARIANT,
-		GenProvider:             "",
 		SignalServiceConfigPath: "/opt/mesosphere/etc/dcos-signal-config.json",
 		ExtraJSONConfigPath:     "/opt/mesosphere/etc/dcos-signal-extra.json",
 		TestFlag:                false,
@@ -73,7 +64,6 @@ func (c *Config) setFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&c.FlagVerbose, "v", c.FlagVerbose, "Verbose logging mode.")
 	fs.BoolVar(&c.FlagVersion, "version", c.FlagVersion, "Print version and exit.")
 	fs.StringVar(&c.DCOSClusterIDPath, "cluster-id-path", c.DCOSClusterIDPath, "Override path to DCOS anonymous ID.")
-	fs.BoolVar(&c.FlagEE, "ee", c.FlagEE, "Set the EE flag.")
 	fs.StringVar(&c.SignalServiceConfigPath, "c", c.SignalServiceConfigPath, "Path to dcos-signal-service.conf.")
 	fs.BoolVar(&c.TestFlag, "test", c.TestFlag, "Test mode dumps a JSON object of the data that would be sent to Segment to STDOUT.")
 	fs.StringVar(&c.SegmentKey, "segment-key", c.SegmentKey, "Key for segmentIO.")
@@ -141,10 +131,6 @@ func ParseArgsReturnConfig(args []string) (Config, []error) {
 		c.GenProvider = err.Error()
 		c.CustomerKey = err.Error()
 		errAry = append(errAry, err)
-	}
-
-	if c.FlagEE {
-		c.DCOSVariant = "enterprise"
 	}
 
 	if len(c.ID) > 0 || len(c.Secret) > 0 {

@@ -50,7 +50,9 @@ func executeRunner(c config.Config) error {
 
 	var (
 		diagnostics = Diagnostics{
-			URL:    c.DiagnosticsURL,
+			Endpoints: []string{
+				":1050/system/health/v1/report",
+			},
 			Method: "GET",
 			Headers: map[string]string{
 				"content-type": "application/json",
@@ -58,10 +60,23 @@ func executeRunner(c config.Config) error {
 		}
 
 		cosmos = Cosmos{
-			URL:    c.CosmosURL,
+			Endpoints: []string{
+				":7070/package/list",
+			},
 			Method: "POST",
 			Headers: map[string]string{
 				"content-type": "application/vnd.dcos.package.list-request",
+			},
+		}
+
+		mesos = Mesos{
+			Endpoints: []string{
+				":5050/frameworks",
+				":5050/metrics/snapshot",
+			},
+			Method: "GET",
+			Headers: map[string]string{
+				"content-type": "application/json",
 			},
 		}
 
@@ -74,6 +89,10 @@ func executeRunner(c config.Config) error {
 	}
 
 	if err := runner(&cosmos, c); err != nil {
+		errored = append(errored, err)
+	}
+
+	if err := runner(&mesos, c); err != nil {
 		errored = append(errored, err)
 	}
 

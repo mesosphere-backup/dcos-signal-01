@@ -8,19 +8,14 @@ import (
 
 func TestDefaultConfig(t *testing.T) {
 	expectedDefault := Config{
-		DiagnosticsURL:          "http://localhost:1050/system/health/v1/report",
-		CosmosURL:               "http://localhost:7070/package/list",
+		MasterURL:               "http://localhost",
 		SegmentEvent:            "health",
-		SegmentKey:              "",
-		CustomerKey:             "",
 		ClusterID:               "",
 		DCOSVersion:             "",
 		DCOSClusterIDPath:       "/var/lib/dcos/cluster-id",
 		SignalServiceConfigPath: "/opt/mesosphere/etc/dcos-signal-config.json",
 		ExtraJSONConfigPath:     "/opt/mesosphere/etc/dcos-signal-extra.json",
-		FlagEE:                  false,
 		DCOSVariant:             "UNSET",
-		GenProvider:             "",
 	}
 	gotDefault := DefaultConfig()
 	if gotDefault != expectedDefault {
