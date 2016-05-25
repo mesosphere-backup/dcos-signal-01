@@ -36,7 +36,7 @@ func PullReport(r Reporter, c config.Config) error {
 	}
 
 	client := http.Client{
-		Timeout: time.Duration(time.Second),
+		Timeout: time.Duration(5 * time.Second),
 	}
 
 	if url.Scheme == "https" {
@@ -53,12 +53,10 @@ func PullReport(r Reporter, c config.Config) error {
 		Header: http.Header{},
 	}
 	headers := r.GetHeaders()
-	if len(headers) > 0 {
-		for headerName, headerValue := range headers {
-			// ex. headerName = "Content-Type" and headerValue = "application/json"
-			req.Header.Add(headerName, headerValue)
+	for headerName, headerValue := range headers {
+		// ex. headerName = "Content-Type" and headerValue = "application/json"
+		req.Header.Add(headerName, headerValue)
 
-		}
 	}
 	// Add the JWT token to the headers if this is a secure request
 	if len(c.JWTToken) > 0 {
