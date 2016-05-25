@@ -26,6 +26,11 @@ build:
 	@echo "+$@"
 	go build -v -ldflags '$(LDFLAGS)' $(FILES)
 
+build-linux: 
+	@echo "+$@"
+	GOOS=linux go build -v -ldflags '$(LDFLAGS)' $(FILES)
+
+
 install:
 	@echo "+$@"
 	go install -v -ldflags '$(LDFLAGS)' $(FILES)

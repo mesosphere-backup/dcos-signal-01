@@ -8,9 +8,8 @@ import (
 
 func TestDefaultConfig(t *testing.T) {
 	expectedDefault := Config{
-		HealthAPIPort:           1050,
-		HealthEndpoint:          "/system/health/v1/report",
-		HealthHost:              "localhost",
+		DiagnosticsURL:          "http://localhost:1050/system/health/v1/report",
+		CosmosURL:               "http://localhost:7070/package/list",
 		SegmentEvent:            "health",
 		SegmentKey:              "",
 		CustomerKey:             "",
@@ -51,16 +50,6 @@ func TestFlagParsing(t *testing.T) {
 			"-cluster-id-path", tempAnonJson.Name(),
 			"-c", tempConfig.Name()})
 
-		reportHostConfig, hostErr = ParseArgsReturnConfig([]string{
-			"-report-host", "10.0.0.1",
-			"-cluster-id-path", tempAnonJson.Name(),
-			"-c", tempConfig.Name()})
-
-		reportPortConfig, portErr = ParseArgsReturnConfig([]string{
-			"-report-port", "8080",
-			"-cluster-id-path", tempAnonJson.Name(),
-			"-c", tempConfig.Name()})
-
 		testConfig, testConfigErr = ParseArgsReturnConfig([]string{
 			"-test",
 			"-cluster-id-path", tempAnonJson.Name(),
@@ -98,22 +87,6 @@ func TestFlagParsing(t *testing.T) {
 	}
 	if versionErr != nil {
 		t.Error("Expected nil, got ", versionErr)
-	}
-
-	// -report-host
-	if reportHostConfig.HealthHost != "10.0.0.1" {
-		t.Error("Expected 10.0.0.1, got ", reportHostConfig.HealthHost)
-	}
-	if hostErr != nil {
-		t.Error("Expected nil, got ", hostErr)
-	}
-
-	// -report-port
-	if reportPortConfig.HealthAPIPort != 8080 {
-		t.Error("Expected 8080, got ", reportPortConfig.HealthAPIPort)
-	}
-	if portErr != nil {
-		t.Error("Expected nil, got ", portErr)
 	}
 }
 
