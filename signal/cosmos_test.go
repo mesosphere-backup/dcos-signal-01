@@ -74,4 +74,8 @@ func TestCosmosTrack(t *testing.T) {
 	if len(actualSegmentTrack.Properties["package_list"].([]CosmosPackages)) != 1 {
 		t.Error("Expected 1 package in list, got", len(actualSegmentTrack.Properties["package_list"].([]CosmosPackages)))
 	}
+
+	if actualSegmentTrack.Properties["package_list"].([]CosmosPackages)[0].AppID != "fooPackage" {
+		t.Error("Expected 'fooPackage', got", actualSegmentTrack.Properties["package_list"].([]CosmosPackages)[0].AppID)
+	}
 }
