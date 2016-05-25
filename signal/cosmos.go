@@ -8,10 +8,12 @@ import (
 	"github.com/segmentio/analytics-go"
 )
 
+type CosmosPackages struct {
+	AppID string `json:"appId"`
+}
+
 type CosmosReport struct {
-	Packages []struct {
-		AppID string `json:"appId"`
-	} `json:"packages"`
+	Packages []CosmosPackages `json:"packages"`
 }
 
 type Cosmos struct {
