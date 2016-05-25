@@ -2,6 +2,7 @@ package signal
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
@@ -21,6 +22,27 @@ type test struct {
 	Properties map[string]interface{}
 }
 
+func runner(r Reporter, c config.Config) error {
+	if err := PullReport(r, c); err == nil {
+		if err := r.SetTrack(c); err == nil {
+			if c.TestFlag {
+				pretty, _ := json.MarshalIndent(r.GetTrack(), "", "    ")
+				fmt.Printf(string(pretty))
+				log.Info("====> DONE")
+			} else {
+				if err := r.SendTrack(c); err != nil {
+					return err
+				}
+			}
+		} else {
+			return err
+		}
+	} else {
+		return err
+	}
+	return nil
+}
+
 // StartSignalRunner accepts Config and runs the signal service once. It returns
 // an error if encountered.
 func executeRunner(c config.Config) error {
@@ -31,33 +53,37 @@ func executeRunner(c config.Config) error {
 			URL:    c.DiagnosticsURL,
 			Method: "GET",
 			Headers: map[string]string{
-				"Content-Type": "application/json",
+				"content-type": "application/json",
 			},
 		}
+
+		cosmos = Cosmos{
+			URL:    c.CosmosURL,
+			Method: "POST",
+			Headers: map[string]string{
+				"content-type": "application/vnd.dcos.package.list-request",
+			},
+		}
+
+		errored = []error{}
 	)
 
-	if err := PullReport(&diagnostics, c); err != nil {
-		log.Error("Error getting diagnostics report")
-		return err
+	// Might want to declare a []Reporter and do this async once we get a few more.
+	if err := runner(&diagnostics, c); err != nil {
+		errored = append(errored, err)
 	}
 
-	if err := diagnostics.SetTrack(c); err != nil {
-		log.Error("Unable to set diagnostics .track, ", err)
-		return err
+	if err := runner(&cosmos, c); err != nil {
+		errored = append(errored, err)
 	}
 
-	if c.TestFlag {
-		pretty, _ := json.MarshalIndent(diagnostics.GetTrack(), "", "    ")
-		fmt.Printf(string(pretty))
-		return nil
-	} else {
-		if err := diagnostics.SendTrack(c); err != nil {
-			log.Error("Error sending diagnostics track data")
-			return err
+	if len(errored) > 0 {
+		for _, err := range errored {
+			log.Error(err)
 		}
+		return errors.New("Errors encountered executing report runners")
 	}
 
-	log.Info("==> SUCCESS")
 	return nil
 }
 
@@ -84,7 +110,9 @@ func Start() {
 		// data to segment even if we can't find things like the anon uuid file or
 		// signal service config json since those would indicate that something is
 		// no right, and signal service is all about surfacing that kind of data.
-		log.Error(configErr)
+		for _, err := range configErr {
+			log.Error(err)
+		}
 	}
 	if err := executeRunner(config); err != nil {
 		log.Error(err)

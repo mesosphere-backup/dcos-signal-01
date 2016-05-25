@@ -43,10 +43,9 @@ type Config struct {
 	Enabled     string `json:"enabled"`
 
 	// Service account configuration
-	ID         string `json:"uid"`
-	SecretPath string `json:"secret_path"`
-	Secret     string
-	JwtToken   string
+	ID       string `json:"uid"`
+	Secret   string `json:"secret"`
+	JWTToken string
 }
 
 // DefaultConfig returns default Config{}
@@ -81,14 +80,19 @@ func (c *Config) setFlags(fs *flag.FlagSet) {
 }
 
 func (c *Config) generateJWTToken() error {
-	token := jwt.New(jwt.SigningMethodRS256)
-	token.Claims["uid"] = c.ID
-	token.Claims["exp"] = time.Now().Add(time.Hour).Unix()
-	tokenStr, err := token.SignedString([]byte(c.Secret))
-	if err != nil {
-		return err
+	if len(c.Secret) > 0 {
+		log.Info("Secret found, generating JWT token")
+		token := jwt.New(jwt.SigningMethodRS256)
+		token.Claims["uid"] = c.ID
+		token.Claims["exp"] = time.Now().Add(time.Hour).Unix()
+		tokenStr, err := token.SignedString([]byte(c.Secret))
+		if err != nil {
+			return err
+		}
+		c.JWTToken = tokenStr
+	} else {
+		log.Warn("Secret not found in config file, not generating JWT token")
 	}
-	c.JwtToken = tokenStr
 	return nil
 }
 
@@ -115,15 +119,7 @@ func (c *Config) getExternalConfig() error {
 			return jsonErr
 		}
 	}
-	// Attempt the load the secret file
-	if len(c.SecretPath) > 0 {
-		log.Warnf("Attempting to load secret file %s", c.SecretPath)
-		if secretFile, err := ioutil.ReadFile(c.SecretPath); err != nil {
-			return err
-		} else {
-			c.Secret = string(secretFile)
-		}
-	}
+
 	return nil
 }
 
@@ -155,6 +151,8 @@ func ParseArgsReturnConfig(args []string) (Config, []error) {
 		if err := c.generateJWTToken(); err != nil {
 			errAry = append(errAry, err)
 		}
+	} else {
+		log.Warn("UID and Secret appear to be empty, not generating JWT token.")
 	}
 
 	if len(errAry) > 0 {

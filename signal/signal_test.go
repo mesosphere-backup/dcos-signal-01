@@ -54,14 +54,29 @@ var mockUnits = map[string]*Unit{
 	},
 }
 
-var mockHealthReport = &HealthReport{
-	Units: mockUnits,
-	Nodes: nil,
+var (
+	mockHealthReport = &HealthReport{
+		Units: mockUnits,
+		Nodes: nil,
+	}
+
+	cosmosPkgs = CosmosPackages{
+		AppID: "fooPackage",
+	}
+
+	mockCosmosReport = &CosmosReport{
+		Packages: []CosmosPackages{
+			cosmosPkgs,
+		},
+	}
+)
+
+func mockHealthReportHandler(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode(mockHealthReport)
 }
 
-// Mock a /system/health/report endpoint
-func mockReportHandler(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(mockHealthReport)
+func mockCosmosReportHandler(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode(mockCosmosReport)
 }
 
 func mockBadJson(w http.ResponseWriter, r *http.Request) {
@@ -77,12 +92,14 @@ func mockFour(w http.ResponseWriter, r *http.Request) {
 }
 
 func mockRouter() *mux.Router {
-	baseUrl := "/system/health/report/test"
+	health := "/system/health/report/test"
+	cosmos := "/package/list"
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc(baseUrl, mockReportHandler).Methods("GET")
-	router.HandleFunc(fmt.Sprintf("%s/badjson", baseUrl), mockBadJson).Methods("GET")
-	router.HandleFunc(fmt.Sprintf("%s/500", baseUrl), mockFive).Methods("GET")
-	router.HandleFunc(fmt.Sprintf("%s/400", baseUrl), mockFour).Methods("GET")
+	router.HandleFunc(health, mockHealthReportHandler).Methods("GET")
+	router.HandleFunc(cosmos, mockCosmosReportHandler).Methods("POST")
+	router.HandleFunc(fmt.Sprintf("%s/badjson", health), mockBadJson).Methods("GET")
+	router.HandleFunc(fmt.Sprintf("%s/500", health), mockFive).Methods("GET")
+	router.HandleFunc(fmt.Sprintf("%s/400", health), mockFour).Methods("GET")
 	return router
 }
 
@@ -101,6 +118,7 @@ func TestSignalRunner(t *testing.T) {
 		verbose   = config.DefaultConfig()
 	)
 
+	cOk.CosmosURL = fmt.Sprintf("http://%s:%d/package/list", ip, port)
 	cOk.DiagnosticsURL = fmt.Sprintf("http://%s:%d/%s", ip, port, endpoint)
 	cOk.CustomerKey = "12345"
 

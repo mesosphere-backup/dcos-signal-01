@@ -113,7 +113,9 @@ func TestGetExternalConfig(t *testing.T) {
 	config := []byte(`
 		{
 			"customer_key": "foo-123-bar",
-			"gen_provider": "onprem"	
+			"gen_provider": "onprem",
+			"uid": "signal",
+			"secret": "-----BEGIN RSA PRIVATE KEY-----\nMIICXQIBAAKBgQCnNDnC7zjA5+3KgeiEjq6TbEYu3YKBLEWN60PF+KQQOIH10Wex0jS8O+sIFKfvKuALAOjA6GUwRFq8ZD9RfDz72MpRHtXsgYWQOWWnVa9OG9mgjJHzLtdKPYKjUVcjPf6QUNzJCZw+OIAKk16+5bJvEJJO5rt46zmkd4Gtaql8hQIDAQABAoGAYRY8K+qIA8soEhxYjQ/kYonOPsw0SRkR0hQ3qC515U1KeRf8pA4wvNP15x1HXeKBcSI4BDts9hfar+VttrzzE0E4pTsYgmIlloU6z1edjYOB6AIle7/1rPA/d5xt46XDEzCR55MHsIoQOYbEn5m91ME7ud9T0IZ4xAYvCg7Aq0kCQQDUJYK1+qtXeBUvXDlDioXdU83pQ0c6vcs/n4a6BNbsL+c/Biu3gWfYqrI3f8LA6YyUWAYriG2Wm3ZcSm4TIj7rAkEAycRr5aLGmitz8XJHDL4Mi8F/PwU5UwnzMwerLurb4dHv20XQxzRxv9OZTCDQzdhap36LjZBJDuM9MimCOde2TwJAZtqg2tXjiI7hxopyAPsCF+JvrK4/tI0cI4aWbU23Xd+DwByfyWJmFLf9m8bHh3wz+iALLcQBTcmlwu0bHQ+3bQJBAIXRWmZhQSs7Kpi2XF0dJyEB4q0ff9eNP9lWeriRV+g73sMlWMTmCZNaec+96/66QdXY3iGz0mCnYg0E7rQCV40CQQCLNT2vDBFgSH7dCUq+FRoDvASsBiqWGSE/njGABnl61BJNKH8jqmMcrmxMoNc9kQiYs5vQqiPtZxJQenUi7zL7\n-----END RSA PRIVATE KEY-----" 
 		}`)
 	tempConfig, _ := ioutil.TempFile(os.TempDir(), "")
 
@@ -132,6 +134,12 @@ func TestGetExternalConfig(t *testing.T) {
 	}
 	if c.GenProvider != "onprem" {
 		t.Error("Expected onprem, got ", c.GenProvider)
+	}
+	if c.ID != "signal" {
+		t.Error("Expected ID, got ", c.ID)
+	}
+	if c.Secret != "-----BEGIN RSA PRIVATE KEY-----\nMIICXQIBAAKBgQCnNDnC7zjA5+3KgeiEjq6TbEYu3YKBLEWN60PF+KQQOIH10Wex0jS8O+sIFKfvKuALAOjA6GUwRFq8ZD9RfDz72MpRHtXsgYWQOWWnVa9OG9mgjJHzLtdKPYKjUVcjPf6QUNzJCZw+OIAKk16+5bJvEJJO5rt46zmkd4Gtaql8hQIDAQABAoGAYRY8K+qIA8soEhxYjQ/kYonOPsw0SRkR0hQ3qC515U1KeRf8pA4wvNP15x1HXeKBcSI4BDts9hfar+VttrzzE0E4pTsYgmIlloU6z1edjYOB6AIle7/1rPA/d5xt46XDEzCR55MHsIoQOYbEn5m91ME7ud9T0IZ4xAYvCg7Aq0kCQQDUJYK1+qtXeBUvXDlDioXdU83pQ0c6vcs/n4a6BNbsL+c/Biu3gWfYqrI3f8LA6YyUWAYriG2Wm3ZcSm4TIj7rAkEAycRr5aLGmitz8XJHDL4Mi8F/PwU5UwnzMwerLurb4dHv20XQxzRxv9OZTCDQzdhap36LjZBJDuM9MimCOde2TwJAZtqg2tXjiI7hxopyAPsCF+JvrK4/tI0cI4aWbU23Xd+DwByfyWJmFLf9m8bHh3wz+iALLcQBTcmlwu0bHQ+3bQJBAIXRWmZhQSs7Kpi2XF0dJyEB4q0ff9eNP9lWeriRV+g73sMlWMTmCZNaec+96/66QdXY3iGz0mCnYg0E7rQCV40CQQCLNT2vDBFgSH7dCUq+FRoDvASsBiqWGSE/njGABnl61BJNKH8jqmMcrmxMoNc9kQiYs5vQqiPtZxJQenUi7zL7\n-----END RSA PRIVATE KEY-----" {
+		t.Error("Expected secret, got", c.Secret)
 	}
 
 	// Test no enterprise
@@ -159,5 +167,41 @@ func TestGetExternalConfig(t *testing.T) {
 	if noEntC.GenProvider != "onprem" {
 		t.Error("Expected onprem, got ", noEntC.GenProvider)
 	}
+}
 
+func TestGenerateJWTToken(t *testing.T) {
+	config := []byte(`
+		{
+			"customer_key": "foo-123-bar",
+			"gen_provider": "onprem",
+			"uid": "signal",
+			"secret": "-----BEGIN RSA PRIVATE KEY-----\nMIICXQIBAAKBgQCnNDnC7zjA5+3KgeiEjq6TbEYu3YKBLEWN60PF+KQQOIH10Wex0jS8O+sIFKfvKuALAOjA6GUwRFq8ZD9RfDz72MpRHtXsgYWQOWWnVa9OG9mgjJHzLtdKPYKjUVcjPf6QUNzJCZw+OIAKk16+5bJvEJJO5rt46zmkd4Gtaql8hQIDAQABAoGAYRY8K+qIA8soEhxYjQ/kYonOPsw0SRkR0hQ3qC515U1KeRf8pA4wvNP15x1HXeKBcSI4BDts9hfar+VttrzzE0E4pTsYgmIlloU6z1edjYOB6AIle7/1rPA/d5xt46XDEzCR55MHsIoQOYbEn5m91ME7ud9T0IZ4xAYvCg7Aq0kCQQDUJYK1+qtXeBUvXDlDioXdU83pQ0c6vcs/n4a6BNbsL+c/Biu3gWfYqrI3f8LA6YyUWAYriG2Wm3ZcSm4TIj7rAkEAycRr5aLGmitz8XJHDL4Mi8F/PwU5UwnzMwerLurb4dHv20XQxzRxv9OZTCDQzdhap36LjZBJDuM9MimCOde2TwJAZtqg2tXjiI7hxopyAPsCF+JvrK4/tI0cI4aWbU23Xd+DwByfyWJmFLf9m8bHh3wz+iALLcQBTcmlwu0bHQ+3bQJBAIXRWmZhQSs7Kpi2XF0dJyEB4q0ff9eNP9lWeriRV+g73sMlWMTmCZNaec+96/66QdXY3iGz0mCnYg0E7rQCV40CQQCLNT2vDBFgSH7dCUq+FRoDvASsBiqWGSE/njGABnl61BJNKH8jqmMcrmxMoNc9kQiYs5vQqiPtZxJQenUi7zL7\n-----END RSA PRIVATE KEY-----" 
+		}`)
+	tempConfig, _ := ioutil.TempFile(os.TempDir(), "")
+
+	defer os.Remove(tempConfig.Name())
+
+	tempConfig.Write(config)
+	c := DefaultConfig()
+
+	c.SignalServiceConfigPath = tempConfig.Name()
+	extErr := c.getExternalConfig()
+	noErr := c.generateJWTToken()
+
+	if extErr != nil {
+		t.Error("Expected no errors loading external config, got", extErr)
+	}
+	if noErr != nil {
+		t.Error("Expected no errors, got", noErr)
+	}
+	if len(c.JWTToken) == 0 {
+		t.Error("Expected generated token, got", c.JWTToken)
+	}
+
+	c.Secret = "foobar"
+	expectErr := c.generateJWTToken()
+
+	if expectErr == nil {
+		t.Error("Expected error loading bad PEM config, got", expectErr)
+	}
 }
