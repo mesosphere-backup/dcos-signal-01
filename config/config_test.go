@@ -183,6 +183,8 @@ func TestGenerateJWTToken(t *testing.T) {
 
 	tempConfig.Write(config)
 	c := DefaultConfig()
+
+	c.SignalServiceConfigPath = tempConfig.Name()
 	extErr := c.getExternalConfig()
 	noErr := c.generateJWTToken()
 
