@@ -6,6 +6,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
+	"strings"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 var VARIANT = "UNSET"
