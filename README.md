@@ -9,12 +9,6 @@ The signal service is a passive data forwarding service for the system health AP
 make build
 ```
 
-Or if you're running in an EE install
-
-```
-make build VARIANT=enterprise
-```
-
 ## Run
 You can run an example with the ```run``` script:
 
