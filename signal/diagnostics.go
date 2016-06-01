@@ -101,6 +101,7 @@ func (d *Diagnostics) SetTrack(c config.Config) error {
 				log.Debug(node.Output[unit.UnitName])
 				totalUnhealthyUnits++
 			}
+			segmentUnitTotalKey := CreateUnitTotalKey(unit.UnitName)
 			segmentUnitUnhealthyKey := CreateUnitUnhealthyKey(unit.UnitName)
 			properties[segmentUnitTotalKey] = totalUnits
 			properties[segmentUnitUnhealthyKey] = totalUnhealthyUnits
