@@ -12,7 +12,12 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
-var VARIANT = "UNSET"
+type SignalConfig interface {
+	setFlags(*flag.FlagSet)
+	setMasterURL() error
+	getClusterID() error
+	getExternalConfig() error
+}
 
 // Config defines dcos-signal configuration
 type Config struct {
@@ -42,11 +47,14 @@ type Config struct {
 	FlagVerbose bool
 	TestFlag    bool
 	Enabled     string `json:"enabled"`
+
+	// Extra headers for all reporter{}'s
+	ExtraHeaders map[string]string
 }
 
-// DefaultConfig returns default Config{}
-func DefaultConfig() Config {
-	return Config{
+var (
+	VARIANT       = "UNSET"
+	defaultConfig = Config{
 		SegmentEvent:            "health",
 		DCOSVersion:             os.Getenv("DCOS_VERSION"),
 		DCOSClusterIDPath:       "/var/lib/dcos/cluster-id",
@@ -55,6 +63,11 @@ func DefaultConfig() Config {
 		ExtraJSONConfigPath:     "/opt/mesosphere/etc/dcos-signal-extra.json",
 		TestFlag:                false,
 	}
+)
+
+// DefaultConfig returns default Config{}
+func DefaultConfig() Config {
+	return defaultConfig
 }
 
 func (c *Config) setFlags(fs *flag.FlagSet) {

@@ -83,6 +83,13 @@ func executeRunner(c config.Config) error {
 		errored = []error{}
 	)
 
+	// Add extra headers if any
+	for k, v := range c.ExtraHeaders {
+		diagnostics.Headers[k] = v
+		cosmos.Headers[k] = v
+		mesos.Headers[k] = v
+	}
+
 	// Might want to declare a []Reporter and do this async once we get a few more.
 	if err := runner(&diagnostics, c); err != nil {
 		errored = append(errored, err)
