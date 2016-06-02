@@ -76,7 +76,7 @@ func (c *Config) setFlags(fs *flag.FlagSet) {
 }
 
 func (c *Config) setMasterURL() error {
-	log.Info("Calculating Master URL")
+	log.Debug("Calculating Master URL")
 	if c.MasterURL != "" {
 		log.Warnf("MasterURL already set in memory, not regenerating: %s", c.MasterURL)
 		return nil
@@ -100,11 +100,11 @@ func (c *Config) setMasterURL() error {
 	if !c.TLSEnabled {
 		log.Warn("TLS disabled, protocol set to HTTP")
 	} else {
-		log.Info("TLS enabled, protocol set to HTTPS")
+		log.Debug("TLS enabled, protocol set to HTTPS")
 		c.MasterURL = fmt.Sprintf("https://%s", masterIP)
 	}
 
-	log.Infof("Master URL Set: %s", c.MasterURL)
+	log.Debugf("Master URL Set: %s", c.MasterURL)
 
 	return nil
 }
