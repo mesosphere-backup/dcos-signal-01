@@ -1,7 +1,6 @@
 package signal
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -38,10 +37,6 @@ func PullReport(r Reporter, c config.Config) error {
 
 		client := http.Client{
 			Timeout: time.Duration(5 * time.Second),
-		}
-
-		if url.Scheme != "http" {
-			return errors.New(fmt.Sprintf("Transport protocol not supported: %s", url.Scheme))
 		}
 
 		req := &http.Request{

@@ -12,8 +12,6 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
-var VARIANT = "UNSET"
-
 // Config defines dcos-signal configuration
 type Config struct {
 	// MasterURL is gained from execution of ip-detect
@@ -42,19 +40,30 @@ type Config struct {
 	FlagVerbose bool
 	TestFlag    bool
 	Enabled     string `json:"enabled"`
+
+	// Extra headers for all reporter{}'s
+	ExtraHeaders map[string]string
+
+	// DC/OS Variant: enterprise or open
+	Variant string
 }
 
-// DefaultConfig returns default Config{}
-func DefaultConfig() Config {
-	return Config{
+var (
+	defaultConfig = Config{
 		SegmentEvent:            "health",
 		DCOSVersion:             os.Getenv("DCOS_VERSION"),
 		DCOSClusterIDPath:       "/var/lib/dcos/cluster-id",
-		DCOSVariant:             VARIANT,
+		DCOSVariant:             "open",
 		SignalServiceConfigPath: "/opt/mesosphere/etc/dcos-signal-config.json",
 		ExtraJSONConfigPath:     "/opt/mesosphere/etc/dcos-signal-extra.json",
 		TestFlag:                false,
+		ExtraHeaders:            make(map[string]string),
 	}
+)
+
+// DefaultConfig returns default Config{}
+func DefaultConfig() Config {
+	return defaultConfig
 }
 
 func (c *Config) setFlags(fs *flag.FlagSet) {
@@ -67,7 +76,7 @@ func (c *Config) setFlags(fs *flag.FlagSet) {
 }
 
 func (c *Config) setMasterURL() error {
-	log.Info("Calculating Master URL")
+	log.Debug("Calculating Master URL")
 	if c.MasterURL != "" {
 		log.Warnf("MasterURL already set in memory, not regenerating: %s", c.MasterURL)
 		return nil
@@ -91,11 +100,11 @@ func (c *Config) setMasterURL() error {
 	if !c.TLSEnabled {
 		log.Warn("TLS disabled, protocol set to HTTP")
 	} else {
-		log.Info("TLS enabled, protocol set to HTTPS")
+		log.Debug("TLS enabled, protocol set to HTTPS")
 		c.MasterURL = fmt.Sprintf("https://%s", masterIP)
 	}
 
-	log.Infof("Master URL Set: %s", c.MasterURL)
+	log.Debugf("Master URL Set: %s", c.MasterURL)
 
 	return nil
 }

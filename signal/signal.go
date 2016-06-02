@@ -83,6 +83,13 @@ func executeRunner(c config.Config) error {
 		errored = []error{}
 	)
 
+	// Add extra headers if any
+	for k, v := range c.ExtraHeaders {
+		diagnostics.Headers[k] = v
+		cosmos.Headers[k] = v
+		mesos.Headers[k] = v
+	}
+
 	// Might want to declare a []Reporter and do this async once we get a few more.
 	if err := runner(&diagnostics, c); err != nil {
 		errored = append(errored, err)
@@ -110,7 +117,7 @@ func Start() {
 	config, configErr := config.ParseArgsReturnConfig(os.Args[1:])
 	switch {
 	case config.FlagVersion:
-		fmt.Println("DCOS Signal Service: version", VERSION, "on revision", REVISION)
+		fmt.Printf("DCOS Signal Service\n Version: %s\n Revision: %s\n DC/OS Variant: %s\n", VERSION, REVISION, config.DCOSVariant)
 		os.Exit(0)
 	default:
 		if config.Enabled == "false" {
