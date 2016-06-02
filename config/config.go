@@ -62,6 +62,7 @@ var (
 		SignalServiceConfigPath: "/opt/mesosphere/etc/dcos-signal-config.json",
 		ExtraJSONConfigPath:     "/opt/mesosphere/etc/dcos-signal-extra.json",
 		TestFlag:                false,
+		ExtraHeaders:            make(map[string]string),
 	}
 )
 
