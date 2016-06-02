@@ -7,18 +7,13 @@ import (
 )
 
 func TestDefaultConfig(t *testing.T) {
-	expectedDefault := Config{
-		SegmentEvent:            "health",
-		ClusterID:               "",
-		DCOSVersion:             "",
-		DCOSClusterIDPath:       "/var/lib/dcos/cluster-id",
-		SignalServiceConfigPath: "/opt/mesosphere/etc/dcos-signal-config.json",
-		ExtraJSONConfigPath:     "/opt/mesosphere/etc/dcos-signal-extra.json",
-		DCOSVariant:             "UNSET",
+	d := DefaultConfig()
+	if d.SegmentEvent != "health" {
+		t.Error("Expected default segment event to be health, got", d.SegmentEvent)
 	}
-	gotDefault := DefaultConfig()
-	if gotDefault != expectedDefault {
-		t.Error("Expected ", expectedDefault, ", got ", gotDefault)
+
+	if d.DCOSClusterIDPath != "/var/lib/dcos/cluster-id" {
+		t.Error("Cluster ID path invalid, got", d.DCOSClusterIDPath)
 	}
 }
 
