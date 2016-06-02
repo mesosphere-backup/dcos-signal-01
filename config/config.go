@@ -12,13 +12,6 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
-type SignalConfig interface {
-	setFlags(*flag.FlagSet)
-	setMasterURL() error
-	getClusterID() error
-	getExternalConfig() error
-}
-
 // Config defines dcos-signal configuration
 type Config struct {
 	// MasterURL is gained from execution of ip-detect
@@ -50,15 +43,17 @@ type Config struct {
 
 	// Extra headers for all reporter{}'s
 	ExtraHeaders map[string]string
+
+	// DC/OS Variant: enterprise or open
+	Variant string
 }
 
 var (
-	VARIANT       = "UNSET"
 	defaultConfig = Config{
 		SegmentEvent:            "health",
 		DCOSVersion:             os.Getenv("DCOS_VERSION"),
 		DCOSClusterIDPath:       "/var/lib/dcos/cluster-id",
-		DCOSVariant:             VARIANT,
+		DCOSVariant:             "open",
 		SignalServiceConfigPath: "/opt/mesosphere/etc/dcos-signal-config.json",
 		ExtraJSONConfigPath:     "/opt/mesosphere/etc/dcos-signal-extra.json",
 		TestFlag:                false,

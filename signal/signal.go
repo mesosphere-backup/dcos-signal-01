@@ -117,7 +117,7 @@ func Start() {
 	config, configErr := config.ParseArgsReturnConfig(os.Args[1:])
 	switch {
 	case config.FlagVersion:
-		fmt.Println("DCOS Signal Service: version", VERSION, "on revision", REVISION)
+		fmt.Printf("DCOS Signal Service\n Version: %s\n Revision: %s\n DC/OS Variant: %s\n", VERSION, REVISION, config.DCOSVariant)
 		os.Exit(0)
 	default:
 		if config.Enabled == "false" {
