@@ -5,8 +5,14 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strconv"
+	"strings"
+	"testing"
 
+	"github.com/dcos/dcos-signal/config"
 	"github.com/gorilla/mux"
+	"github.com/segmentio/analytics-go"
 )
 
 var mockNodes = []*Node{
@@ -115,12 +121,17 @@ func mockFour(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, http.StatusText(400), 400)
 }
 
+func mockTester(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode("OK")
+}
+
 func mockRouter() *mux.Router {
 	var (
 		health     = "/system/health/v1/report"
 		cosmos     = "/package/list"
 		frameworks = "/frameworks"
 		mesosStats = "/metrics/snapshot"
+		tester     = "/tester"
 	)
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc(health, mockHealthReportHandler).Methods("GET")
@@ -130,5 +141,31 @@ func mockRouter() *mux.Router {
 	router.HandleFunc(fmt.Sprintf("%s/badjson", health), mockBadJson).Methods("GET")
 	router.HandleFunc(fmt.Sprintf("%s/500", health), mockFive).Methods("GET")
 	router.HandleFunc(fmt.Sprintf("%s/400", health), mockFour).Methods("GET")
+	router.HandleFunc(tester, mockTester).Methods("POST")
 	return router
+}
+
+func TestExecuteTester(t *testing.T) {
+	url, _ := url.Parse(server.URL)
+	host := strings.Split(url.Host, ":")[0]
+	port, _ := strconv.Atoi(strings.Split(url.Host, ":")[1])
+
+	var (
+		mockTrack = &analytics.Track{}
+		data      = map[string]*analytics.Track{
+			"foo": mockTrack,
+		}
+		mockConfig = config.Config{
+			TestHost:     host,
+			TestPort:     port,
+			TestEndpoint: "/tester",
+		}
+	)
+
+	err := executeTester(data, mockConfig)
+
+	if err != nil {
+		t.Error("Expected nil error, got", err)
+	}
+
 }

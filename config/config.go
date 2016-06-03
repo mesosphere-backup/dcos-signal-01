@@ -36,10 +36,13 @@ type Config struct {
 	ExtraJSONConfigPath     string
 
 	// Optional CLI Flags
-	FlagVersion bool
-	FlagVerbose bool
-	TestFlag    bool
-	Enabled     string `json:"enabled"`
+	FlagVersion  bool
+	FlagVerbose  bool
+	TestFlag     bool
+	TestHost     string
+	TestPort     int
+	TestEndpoint string
+	Enabled      string `json:"enabled"`
 
 	// Extra headers for all reporter{}'s
 	ExtraHeaders map[string]string
@@ -57,6 +60,9 @@ var (
 		SignalServiceConfigPath: "/opt/mesosphere/etc/dcos-signal-config.json",
 		ExtraJSONConfigPath:     "/opt/mesosphere/etc/dcos-signal-extra.json",
 		TestFlag:                false,
+		TestHost:                "localhost",
+		TestPort:                4444,
+		TestEndpoint:            "/tester",
 		ExtraHeaders:            make(map[string]string),
 	}
 )
@@ -73,19 +79,22 @@ func (c *Config) setFlags(fs *flag.FlagSet) {
 	fs.StringVar(&c.SignalServiceConfigPath, "c", c.SignalServiceConfigPath, "Path to dcos-signal-service.conf.")
 	fs.BoolVar(&c.TestFlag, "test", c.TestFlag, "Test mode dumps a JSON object of the data that would be sent to Segment to STDOUT.")
 	fs.StringVar(&c.SegmentKey, "segment-key", c.SegmentKey, "Key for segmentIO.")
+	fs.StringVar(&c.TestHost, "test-host", c.TestHost, "Host (IP or domain name) to POST test JSON")
+	fs.IntVar(&c.TestPort, "test-port", c.TestPort, "Host port to POST test JSON")
+	fs.StringVar(&c.TestEndpoint, "test-endpoint", c.TestEndpoint, "Host endpoint to POST to")
 }
 
 func (c *Config) setMasterURL() error {
 	log.Debug("Calculating Master URL")
 	if c.MasterURL != "" {
-		log.Warnf("MasterURL already set in memory, not regenerating: %s", c.MasterURL)
+		log.Debugf("MasterURL already set in memory, not regenerating: %s", c.MasterURL)
 		return nil
 	}
 
 	detectIPCommand := os.Getenv("MESOS_IP_DISCOVERY_COMMAND")
 	if detectIPCommand == "" {
 		detectIPCommand = "/opt/mesosphere/bin/detect_ip"
-		log.Warnf("Environment variable MESOS_IP_DISCOVERY_COMMAND is not set, using default location: %s", detectIPCommand)
+		log.Debugf("Environment variable MESOS_IP_DISCOVERY_COMMAND is not set, using default location: %s", detectIPCommand)
 	}
 
 	out, err := exec.Command(detectIPCommand).Output()
@@ -98,7 +107,7 @@ func (c *Config) setMasterURL() error {
 	masterIP := strings.TrimRight(string(out), "\n")
 	c.MasterURL = fmt.Sprintf("http://%s", masterIP)
 	if !c.TLSEnabled {
-		log.Warn("TLS disabled, protocol set to HTTP")
+		log.Debug("TLS disabled, protocol set to HTTP")
 	} else {
 		log.Debug("TLS enabled, protocol set to HTTPS")
 		c.MasterURL = fmt.Sprintf("https://%s", masterIP)

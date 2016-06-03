@@ -29,8 +29,8 @@ func TestDiagnosticsTrack(t *testing.T) {
 		t.Error("Got error pulling from test server, ", pullErr)
 	}
 
-	setupErr := testDiag.SetTrack(c)
-	actualSegmentTrack := testDiag.GetTrack()
+	setupErr := testDiag.setTrack(c)
+	actualSegmentTrack := testDiag.getTrack()
 
 	if setupErr != nil {
 		t.Error("Expected no errors running diagnostics.SetTrack(), got ", setupErr)

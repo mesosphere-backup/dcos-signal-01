@@ -32,44 +32,51 @@ type Mesos struct {
 	Method    string
 	Headers   map[string]string
 	Track     *analytics.Track
+	Error     string
+	Name      string
 }
 
-func (d *Mesos) SetReport(body []byte) error {
+func (d *Mesos) getName() string {
+	return d.Name
+}
+
+func (d *Mesos) setReport(body []byte) error {
 	if err := json.Unmarshal(body, &d.Report); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (d *Mesos) GetReport() interface{} {
+func (d *Mesos) getReport() interface{} {
 	return d.Report
 }
 
-func (d *Mesos) SetHeaders(headers map[string]string) {
-	d.Headers = headers
+func (d *Mesos) addHeaders(head map[string]string) {
+	for k, v := range head {
+		d.Headers[k] = v
+	}
 }
-
-func (d *Mesos) GetHeaders() map[string]string {
+func (d *Mesos) getHeaders() map[string]string {
 	return d.Headers
 }
 
-func (d *Mesos) SetEndpoints(url []string) {
-	d.Endpoints = url
-}
-
-func (d *Mesos) GetEndpoints() []string {
+func (d *Mesos) getEndpoints() []string {
 	return d.Endpoints
 }
 
-func (d *Mesos) SetMethod(method string) {
-	d.Method = method
-}
-
-func (d *Mesos) GetMethod() string {
+func (d *Mesos) getMethod() string {
 	return d.Method
 }
 
-func (d *Mesos) SetTrack(c config.Config) error {
+func (d *Mesos) getError() string {
+	return d.Error
+}
+
+func (d *Mesos) setError(err string) {
+	d.Error = err
+}
+
+func (d *Mesos) setTrack(c config.Config) error {
 	properties := map[string]interface{}{
 		"source":             "cluster",
 		"customerKey":        c.CustomerKey,
@@ -99,11 +106,11 @@ func (d *Mesos) SetTrack(c config.Config) error {
 	return nil
 }
 
-func (d *Mesos) GetTrack() *analytics.Track {
+func (d *Mesos) getTrack() *analytics.Track {
 	return d.Track
 }
 
-func (d *Mesos) SendTrack(c config.Config) error {
+func (d *Mesos) sendTrack(c config.Config) error {
 	ac := CreateSegmentClient(c.SegmentKey, c.FlagVerbose)
 	defer ac.Close()
 	err := ac.Track(d.Track)
