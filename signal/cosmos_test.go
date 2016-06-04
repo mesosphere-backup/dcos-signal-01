@@ -27,12 +27,12 @@ func TestCosmosTrack(t *testing.T) {
 		t.Error("Expected no errors pulling report from test server, got", pullErr)
 	}
 
-	setupErr := testCosmos.SetTrack(c)
+	setupErr := testCosmos.setTrack(c)
 	if setupErr != nil {
 		t.Error("Expected no errors setting up track, got", setupErr)
 	}
 
-	actualSegmentTrack := testCosmos.GetTrack()
+	actualSegmentTrack := testCosmos.getTrack()
 	if actualSegmentTrack.Event != "package_list" {
 		t.Error("Expected actualSegmentTrack.Event to be 'package_list', got ", actualSegmentTrack.Event)
 	}

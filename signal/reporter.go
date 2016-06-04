@@ -12,22 +12,37 @@ import (
 	"github.com/segmentio/analytics-go"
 )
 
+// Reporter expresses a generic DC/OS service report
 type Reporter interface {
-	SetEndpoints([]string)
-	GetEndpoints() []string
-	SetMethod(string)
-	GetMethod() string
-	SetHeaders(map[string]string)
-	GetHeaders() map[string]string
-	SetReport([]byte) error
-	GetReport() interface{}
-	SetTrack(config.Config) error
-	GetTrack() *analytics.Track
-	SendTrack(config.Config) error
+	// Retrieve the endpoints for the service report
+	getEndpoints() []string
+	// The HTTP method to execute the report retrival
+	getMethod() string
+	// Retrieve the headers for the HTTP request
+	getHeaders() map[string]string
+	// Add headers
+	addHeaders(map[string]string)
+	// Setup the analytics.Track type
+	setReport([]byte) error
+	// Retreieve the analytics.Track type
+	getReport() interface{}
+	// Create generic track
+	setTrack(config.Config) error
+	// Retrieve only track data
+	getTrack() *analytics.Track
+	// Send track to segmentIO
+	sendTrack(config.Config) error
+	// Get the name of this Reporter
+	getName() string
+	// Set an error message
+	setError(string)
+	// Get an error message
+	getError() string
 }
 
+// PullReport executes retrival of a service report
 func PullReport(r Reporter, c config.Config) error {
-	for _, endpoint := range r.GetEndpoints() {
+	for _, endpoint := range r.getEndpoints() {
 		requestURL := fmt.Sprintf("%s%s", c.MasterURL, endpoint)
 		log.Debugf("Attempting to pull report from %s", requestURL)
 		url, err := url.Parse(requestURL)
@@ -40,11 +55,11 @@ func PullReport(r Reporter, c config.Config) error {
 		}
 
 		req := &http.Request{
-			Method: r.GetMethod(),
+			Method: r.getMethod(),
 			URL:    url,
 			Header: http.Header{},
 		}
-		headers := r.GetHeaders()
+		headers := r.getHeaders()
 		for headerName, headerValue := range headers {
 			// ex. headerName = "Content-Type" and headerValue = "application/json"
 			req.Header.Add(headerName, headerValue)
@@ -62,7 +77,7 @@ func PullReport(r Reporter, c config.Config) error {
 		}
 		log.Debugf("Successful request to %s", requestURL)
 
-		if err := r.SetReport(body); err != nil {
+		if err := r.setReport(body); err != nil {
 			return err
 		}
 	}

@@ -30,12 +30,12 @@ func testMesosTrack(t *testing.T) {
 		t.Error("Expected no errors pulling report from test server, got", pullErr)
 	}
 
-	setupErr := testMesos.SetTrack(c)
+	setupErr := testMesos.setTrack(c)
 	if setupErr != nil {
 		t.Error("Expected no errors setting up track, got", setupErr)
 	}
 
-	actualSegmentTrack := testMesos.GetTrack()
+	actualSegmentTrack := testMesos.getTrack()
 	if actualSegmentTrack.Event != "package_list" {
 		t.Error("Expected actualSegmentTrack.Event to be 'package_list', got ", actualSegmentTrack.Event)
 	}

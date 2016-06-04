@@ -1,13 +1,16 @@
 package signal
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/dcos/dcos-signal/config"
+	"github.com/segmentio/analytics-go"
 )
 
 var (
@@ -15,99 +18,88 @@ var (
 	REVISION = "UNSET"
 )
 
-type test struct {
-	Event      string
-	UserId     string
-	ClusterId  string
-	Properties map[string]interface{}
-}
-
-func runner(r Reporter, c config.Config) error {
-	if err := PullReport(r, c); err == nil {
-		if err := r.SetTrack(c); err == nil {
-			if c.TestFlag {
-				pretty, _ := json.MarshalIndent(r.GetTrack(), "", "    ")
-				fmt.Printf(string(pretty))
-				log.Info("====> DONE")
-			} else {
-				if err := r.SendTrack(c); err != nil {
-					return err
-				}
-			}
-		} else {
+func runner(done chan Reporter, reporters chan Reporter, c config.Config, w int) error {
+	for r := range reporters {
+		log.Debugf("Worker %d: Processing job for %+v", w, r)
+		err := PullReport(r, c)
+		if err != nil {
+			log.Errorf("Worker %d: %s", w, err)
+			r.setError(err.Error())
+			done <- r
 			return err
 		}
-	} else {
-		return err
+
+		err = r.setTrack(c)
+		if err != nil {
+			log.Errorf("Worker %d: %s", w, err)
+			r.setError(err.Error())
+			done <- r
+			return err
+		}
+		done <- r
 	}
 	return nil
 }
 
-// StartSignalRunner accepts Config and runs the signal service once. It returns
-// an error if encountered.
+func executeTester(data map[string]*analytics.Track, c config.Config) error {
+	log.Info("Executing POST to test server")
+	jsonStr, _ := json.MarshalIndent(data, "", "    ")
+	url := fmt.Sprintf("http://%s:%d", c.TestHost, c.TestPort)
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	if err != nil {
+		return err
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	log.Infof("Test server response: %s", resp.Status)
+	return nil
+}
+
 func executeRunner(c config.Config) error {
 	log.Info("==> STARTING SIGNAL RUNNER")
 
-	var (
-		diagnostics = Diagnostics{
-			Endpoints: []string{
-				":1050/system/health/v1/report",
-			},
-			Method: "GET",
-			Headers: map[string]string{
-				"content-type": "application/json",
-			},
-		}
+	// Get our channel of jobs (reporters)
+	reporters, err := makeReporters(c)
+	if err != nil {
+		return errors.New("Unable to get reporters.")
+	}
+	// Make a channel to dump the built tracks to
+	done := make(chan Reporter)
 
-		cosmos = Cosmos{
-			Endpoints: []string{
-				":7070/package/list",
-			},
-			Method: "POST",
-			Headers: map[string]string{
-				"content-type": "application/vnd.dcos.package.list-request",
-			},
-		}
-
-		mesos = Mesos{
-			Endpoints: []string{
-				":5050/frameworks",
-				":5050/metrics/snapshot",
-			},
-			Method: "GET",
-			Headers: map[string]string{
-				"content-type": "application/json",
-			},
-		}
-
-		errored = []error{}
-	)
-
-	// Add extra headers if any
-	for k, v := range c.ExtraHeaders {
-		diagnostics.Headers[k] = v
-		cosmos.Headers[k] = v
-		mesos.Headers[k] = v
+	workers := len(reporters)
+	for w := 1; w <= workers; w++ {
+		log.Debugf("Deploying Worker %d", w)
+		go runner(done, reporters, c, w)
 	}
 
-	// Might want to declare a []Reporter and do this async once we get a few more.
-	if err := runner(&diagnostics, c); err != nil {
-		errored = append(errored, err)
-	}
+	tester := make(map[string]*analytics.Track)
 
-	if err := runner(&cosmos, c); err != nil {
-		errored = append(errored, err)
-	}
-
-	if err := runner(&mesos, c); err != nil {
-		errored = append(errored, err)
-	}
-
-	if len(errored) > 0 {
-		for _, err := range errored {
-			log.Error(err)
+	processed := 1
+	for processed <= workers {
+		select {
+		case r := <-done:
+			if c.TestFlag {
+				log.Info("Adding test data")
+				tester[r.getName()] = r.getTrack()
+			} else if len(r.getError()) > 0 {
+				log.Errorf("%s: %s", r.getName(), r.getError())
+			} else {
+				r.sendTrack(c)
+			}
+			processed += 1
 		}
-		return errors.New("Errors encountered executing report runners")
+	}
+
+	if c.TestFlag {
+		if err := executeTester(tester, c); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -127,7 +119,7 @@ func Start() {
 			log.SetLevel(log.DebugLevel)
 		}
 		if config.TestFlag {
-			log.SetLevel(log.ErrorLevel)
+			log.SetLevel(log.FatalLevel)
 		}
 	}
 	if configErr != nil {

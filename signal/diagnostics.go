@@ -38,48 +38,56 @@ type Node struct {
 
 type Diagnostics struct {
 	Report    *HealthReport
+	Name      string
 	Endpoints []string
 	Method    string
 	Headers   map[string]string
 	Track     *analytics.Track
+	Error     string
 }
 
-func (d *Diagnostics) SetReport(body []byte) error {
+func (d *Diagnostics) getName() string {
+	return d.Name
+}
+
+func (d *Diagnostics) setReport(body []byte) error {
 	if err := json.Unmarshal(body, &d.Report); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (d *Diagnostics) GetReport() interface{} {
+func (d *Diagnostics) getReport() interface{} {
 	return d.Report
 }
 
-func (d *Diagnostics) SetHeaders(headers map[string]string) {
-	d.Headers = headers
+func (d *Diagnostics) addHeaders(head map[string]string) {
+	for k, v := range head {
+		d.Headers[k] = v
+	}
 }
 
-func (d *Diagnostics) GetHeaders() map[string]string {
+func (d *Diagnostics) getHeaders() map[string]string {
 	return d.Headers
 }
 
-func (d *Diagnostics) SetEndpoints(url []string) {
-	d.Endpoints = url
-}
-
-func (d *Diagnostics) GetEndpoints() []string {
+func (d *Diagnostics) getEndpoints() []string {
 	return d.Endpoints
 }
 
-func (d *Diagnostics) SetMethod(method string) {
-	d.Method = method
-}
-
-func (d *Diagnostics) GetMethod() string {
+func (d *Diagnostics) getMethod() string {
 	return d.Method
 }
 
-func (d *Diagnostics) SetTrack(c config.Config) error {
+func (d *Diagnostics) getError() string {
+	return d.Error
+}
+
+func (d *Diagnostics) setError(err string) {
+	d.Error = err
+}
+
+func (d *Diagnostics) setTrack(c config.Config) error {
 	properties := map[string]interface{}{
 		"source":             "cluster",
 		"customerKey":        c.CustomerKey,
@@ -116,11 +124,11 @@ func (d *Diagnostics) SetTrack(c config.Config) error {
 	return nil
 }
 
-func (d *Diagnostics) GetTrack() *analytics.Track {
+func (d *Diagnostics) getTrack() *analytics.Track {
 	return d.Track
 }
 
-func (d *Diagnostics) SendTrack(c config.Config) error {
+func (d *Diagnostics) sendTrack(c config.Config) error {
 	ac := CreateSegmentClient(c.SegmentKey, c.FlagVerbose)
 	defer ac.Close()
 

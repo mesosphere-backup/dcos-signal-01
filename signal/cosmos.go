@@ -3,7 +3,6 @@ package signal
 import (
 	"encoding/json"
 
-	//	log "github.com/Sirupsen/logrus"
 	"github.com/dcos/dcos-signal/config"
 	"github.com/segmentio/analytics-go"
 )
@@ -16,50 +15,59 @@ type CosmosReport struct {
 	Packages []CosmosPackages `json:"packages"`
 }
 
+// Cosmos implements a Reporter for the cosmos service
 type Cosmos struct {
 	Report    *CosmosReport
 	Endpoints []string
 	Method    string
 	Headers   map[string]string
 	Track     *analytics.Track
+	Error     string
+	Name      string
 }
 
-func (c *Cosmos) SetReport(body []byte) error {
+func (c *Cosmos) getName() string {
+	return c.Name
+}
+
+func (c *Cosmos) setReport(body []byte) error {
 	if err := json.Unmarshal(body, &c.Report); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *Cosmos) GetReport() interface{} {
+func (c *Cosmos) getReport() interface{} {
 	return c.Report
 }
 
-func (c *Cosmos) SetHeaders(headers map[string]string) {
-	c.Headers = headers
+func (c *Cosmos) addHeaders(head map[string]string) {
+	for k, v := range head {
+		c.Headers[k] = v
+	}
 }
 
-func (c *Cosmos) GetHeaders() map[string]string {
+func (c *Cosmos) getHeaders() map[string]string {
 	return c.Headers
 }
 
-func (c *Cosmos) SetEndpoints(url []string) {
-	c.Endpoints = url
-}
-
-func (c *Cosmos) GetEndpoints() []string {
+func (c *Cosmos) getEndpoints() []string {
 	return c.Endpoints
 }
 
-func (c *Cosmos) SetMethod(method string) {
-	c.Method = method
-}
-
-func (c *Cosmos) GetMethod() string {
+func (c *Cosmos) getMethod() string {
 	return c.Method
 }
 
-func (c *Cosmos) SetTrack(config config.Config) error {
+func (c *Cosmos) getError() string {
+	return c.Error
+}
+
+func (c *Cosmos) setError(err string) {
+	c.Error = err
+}
+
+func (c *Cosmos) setTrack(config config.Config) error {
 	properties := map[string]interface{}{
 		"package_list":       c.Report.Packages,
 		"source":             "cluster",
@@ -79,11 +87,11 @@ func (c *Cosmos) SetTrack(config config.Config) error {
 	return nil
 }
 
-func (c *Cosmos) GetTrack() *analytics.Track {
+func (c *Cosmos) getTrack() *analytics.Track {
 	return c.Track
 }
 
-func (c *Cosmos) SendTrack(config config.Config) error {
+func (c *Cosmos) sendTrack(config config.Config) error {
 	ac := CreateSegmentClient(config.SegmentKey, config.FlagVerbose)
 	defer ac.Close()
 	err := ac.Track(c.Track)
