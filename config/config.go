@@ -18,8 +18,12 @@ import (
 type Config struct {
 	// MasterURL is gained from execution of ip-detect
 	MasterURL string
-	// Make requests using HTTP or HTTPS? Set based on variant at install time.
+	// Make requests using HTTP or HTTPS
 	TLSEnabled bool `json:"tls_enabled"`
+
+	// CA Configuration for TLS requests
+	CACertPath string `json:"ca_cert_path"`
+	CAPool     *x509.CertPool
 
 	// Segment IO Settings
 	SegmentKey   string
@@ -48,10 +52,6 @@ type Config struct {
 
 	// Extra headers for all reporter{}'s
 	ExtraHeaders map[string]string
-
-	// CA Configuration for TLS requests
-	CACertPath string `json:"ca_cert_path"`
-	CAPool     *x509.CertPool
 
 	// DC/OS Variant: enterprise or open
 	Variant string

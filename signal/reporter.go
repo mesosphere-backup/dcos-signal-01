@@ -1,6 +1,7 @@
 package signal
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -54,11 +55,30 @@ func PullReport(r Reporter, c config.Config) error {
 			Timeout: time.Duration(5 * time.Second),
 		}
 
+		if c.TLSEnabled {
+			var tlsClientConfig *tls.Config
+			if c.CAPool == nil {
+				// do HTTPS without certificate verification.
+				tlsClientConfig = &tls.Config{
+					InsecureSkipVerify: true,
+				}
+			} else {
+				tlsClientConfig = &tls.Config{
+					RootCAs: c.CAPool,
+				}
+			}
+
+			client.Transport = &http.Transport{
+				TLSClientConfig: tlsClientConfig,
+			}
+		}
+
 		req := &http.Request{
 			Method: r.getMethod(),
 			URL:    url,
 			Header: http.Header{},
 		}
+
 		headers := r.getHeaders()
 		for headerName, headerValue := range headers {
 			// ex. headerName = "Content-Type" and headerValue = "application/json"
