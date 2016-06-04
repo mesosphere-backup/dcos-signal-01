@@ -1,7 +1,9 @@
 package config
 
 import (
+	"crypto/x509"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -46,6 +48,10 @@ type Config struct {
 
 	// Extra headers for all reporter{}'s
 	ExtraHeaders map[string]string
+
+	// CA Configuration for TLS requests
+	CACertPath string `json:"ca_cert_path"`
+	CAPool     *x509.CertPool
 
 	// DC/OS Variant: enterprise or open
 	Variant string
@@ -141,7 +147,31 @@ func (c *Config) getExternalConfig() error {
 			return jsonErr
 		}
 	}
+	return nil
+}
 
+func (c *Config) tryLoadingCert() error {
+	// If no ca found, return nil.
+	if c.CACertPath == "" {
+		return nil
+	}
+
+	caPool := x509.NewCertPool()
+	f, err := os.Open(c.CACertPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		return err
+	}
+
+	if !caPool.AppendCertsFromPEM(b) {
+		return errors.New("CACertFile parsing failed")
+	}
+	c.CAPool = caPool
 	return nil
 }
 
@@ -150,22 +180,33 @@ func ParseArgsReturnConfig(args []string) (Config, []error) {
 	c := DefaultConfig()
 	signalFlag := flag.NewFlagSet("", flag.ContinueOnError)
 	c.setFlags(signalFlag)
+
+	// Parse CLI flags to override default config
 	if err := signalFlag.Parse(args); err != nil {
 		errAry = append(errAry, err)
 	}
 
+	// Get the cluster-id generate by ZK consensus
 	if err := c.getClusterID(); err != nil {
 		c.ClusterID = err.Error()
 		errAry = append(errAry, err)
 	}
 
+	// Get standard and extra JSON config off disk
 	if err := c.getExternalConfig(); err != nil {
 		c.GenProvider = err.Error()
 		c.CustomerKey = err.Error()
 		errAry = append(errAry, err)
 	}
 
+	// Set the MasterURL from default or ip-detect
 	if err := c.setMasterURL(); err != nil {
+		errAry = append(errAry, err)
+	}
+
+	// Once all the config has been loaded, we can attempted to make a CAPool from the
+	// path passed in config
+	if err := c.tryLoadingCert(); err != nil {
 		errAry = append(errAry, err)
 	}
 
