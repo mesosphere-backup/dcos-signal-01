@@ -45,6 +45,8 @@ func executeTester(data map[string]*analytics.Track, c config.Config) error {
 	log.Info("Executing POST to test server")
 	jsonStr, _ := json.MarshalIndent(data, "", "    ")
 
+	log.Debugf("Attmpting to POST test data to %s\n%s", c.TestURL, jsonStr)
+
 	req, err := http.NewRequest("POST", c.TestURL, bytes.NewBuffer(jsonStr))
 	if err != nil {
 		return err
