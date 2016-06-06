@@ -45,6 +45,7 @@ type Config struct {
 	FlagVersion  bool
 	FlagVerbose  bool
 	TestFlag     bool
+	TestURL      string
 	TestHost     string
 	TestPort     int
 	TestEndpoint string
@@ -66,6 +67,7 @@ var (
 		SignalServiceConfigPath: "/opt/mesosphere/etc/dcos-signal-config.json",
 		ExtraJSONConfigPath:     "/opt/mesosphere/etc/dcos-signal-extra.json",
 		TestFlag:                false,
+		TestURL:                 "http://localhost:444/tester",
 		TestHost:                "localhost",
 		TestPort:                4444,
 		TestEndpoint:            "/tester",
@@ -88,6 +90,8 @@ func (c *Config) setFlags(fs *flag.FlagSet) {
 	fs.StringVar(&c.TestHost, "test-host", c.TestHost, "Host (IP or domain name) to POST test JSON")
 	fs.IntVar(&c.TestPort, "test-port", c.TestPort, "Host port to POST test JSON")
 	fs.StringVar(&c.TestEndpoint, "test-endpoint", c.TestEndpoint, "Host endpoint to POST to")
+	fs.StringVar(&c.MasterURL, "master-url", c.MasterURL, "Override the IP to the master host")
+	fs.StringVar(&c.TestURL, "test-url", c.TestURL, "Override default test URL")
 }
 
 func (c *Config) setMasterURL() error {

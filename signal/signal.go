@@ -119,7 +119,7 @@ func Start() {
 			log.SetLevel(log.DebugLevel)
 		}
 		if config.TestFlag {
-			log.SetLevel(log.FatalLevel)
+			log.SetLevel(log.DebugLevel)
 		}
 	}
 	if configErr != nil {
