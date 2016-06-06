@@ -44,9 +44,8 @@ func runner(done chan Reporter, reporters chan Reporter, c config.Config, w int)
 func executeTester(data map[string]*analytics.Track, c config.Config) error {
 	log.Info("Executing POST to test server")
 	jsonStr, _ := json.MarshalIndent(data, "", "    ")
-	url := fmt.Sprintf("http://%s:%d", c.TestHost, c.TestPort)
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	req, err := http.NewRequest("POST", c.TestURL, bytes.NewBuffer(jsonStr))
 	if err != nil {
 		return err
 	}
@@ -54,6 +53,7 @@ func executeTester(data map[string]*analytics.Track, c config.Config) error {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
+		log.Errorf("Could not POST test data to test URL %s", c.TestURL)
 		return err
 	}
 
@@ -84,7 +84,7 @@ func executeRunner(c config.Config) error {
 	for processed <= workers {
 		select {
 		case r := <-done:
-			if c.TestFlag {
+			if len(c.TestURL) > 0 {
 				log.Info("Adding test data")
 				tester[r.getName()] = r.getTrack()
 			} else if len(r.getError()) > 0 {
@@ -96,7 +96,7 @@ func executeRunner(c config.Config) error {
 		}
 	}
 
-	if c.TestFlag {
+	if len(c.TestURL) > 0 {
 		if err := executeTester(tester, c); err != nil {
 			return err
 		}
@@ -118,7 +118,7 @@ func Start() {
 		if config.FlagVerbose {
 			log.SetLevel(log.DebugLevel)
 		}
-		if config.TestFlag {
+		if len(config.TestURL) > 0 {
 			log.SetLevel(log.DebugLevel)
 		}
 	}

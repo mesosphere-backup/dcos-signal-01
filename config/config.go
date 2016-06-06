@@ -42,14 +42,10 @@ type Config struct {
 	ExtraJSONConfigPath     string
 
 	// Optional CLI Flags
-	FlagVersion  bool
-	FlagVerbose  bool
-	TestFlag     bool
-	TestURL      string
-	TestHost     string
-	TestPort     int
-	TestEndpoint string
-	Enabled      string `json:"enabled"`
+	FlagVersion bool
+	FlagVerbose bool
+	TestURL     string
+	Enabled     string `json:"enabled"`
 
 	// Extra headers for all reporter{}'s
 	ExtraHeaders map[string]string
@@ -66,11 +62,6 @@ var (
 		DCOSVariant:             "open",
 		SignalServiceConfigPath: "/opt/mesosphere/etc/dcos-signal-config.json",
 		ExtraJSONConfigPath:     "/opt/mesosphere/etc/dcos-signal-extra.json",
-		TestFlag:                false,
-		TestURL:                 "http://localhost:444/tester",
-		TestHost:                "localhost",
-		TestPort:                4444,
-		TestEndpoint:            "/tester",
 		ExtraHeaders:            make(map[string]string),
 	}
 )
@@ -85,11 +76,7 @@ func (c *Config) setFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&c.FlagVersion, "version", c.FlagVersion, "Print version and exit.")
 	fs.StringVar(&c.DCOSClusterIDPath, "cluster-id-path", c.DCOSClusterIDPath, "Override path to DCOS anonymous ID.")
 	fs.StringVar(&c.SignalServiceConfigPath, "c", c.SignalServiceConfigPath, "Path to dcos-signal-service.conf.")
-	fs.BoolVar(&c.TestFlag, "test", c.TestFlag, "Test mode dumps a JSON object of the data that would be sent to Segment to STDOUT.")
 	fs.StringVar(&c.SegmentKey, "segment-key", c.SegmentKey, "Key for segmentIO.")
-	fs.StringVar(&c.TestHost, "test-host", c.TestHost, "Host (IP or domain name) to POST test JSON")
-	fs.IntVar(&c.TestPort, "test-port", c.TestPort, "Host port to POST test JSON")
-	fs.StringVar(&c.TestEndpoint, "test-endpoint", c.TestEndpoint, "Host endpoint to POST to")
 	fs.StringVar(&c.MasterURL, "master-url", c.MasterURL, "Override the IP to the master host")
 	fs.StringVar(&c.TestURL, "test-url", c.TestURL, "Override default test URL")
 }
