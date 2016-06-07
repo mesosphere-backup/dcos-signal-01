@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/dcos/dcos-signal/config"
@@ -147,8 +145,7 @@ func mockRouter() *mux.Router {
 
 func TestExecuteTester(t *testing.T) {
 	url, _ := url.Parse(server.URL)
-	host := strings.Split(url.Host, ":")[0]
-	port, _ := strconv.Atoi(strings.Split(url.Host, ":")[1])
+	testURL := "http://" + url.Host + "/tester"
 
 	var (
 		mockTrack = &analytics.Track{}
@@ -156,9 +153,7 @@ func TestExecuteTester(t *testing.T) {
 			"foo": mockTrack,
 		}
 		mockConfig = config.Config{
-			TestHost:     host,
-			TestPort:     port,
-			TestEndpoint: "/tester",
+			TestURL: testURL,
 		}
 	)
 
