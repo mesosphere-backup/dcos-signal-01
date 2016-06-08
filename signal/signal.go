@@ -109,6 +109,11 @@ func executeRunner(c config.Config) error {
 
 func Start() {
 	config, configErr := config.ParseArgsReturnConfig(os.Args[1:])
+	if configErr != nil {
+		for _, err := range configErr {
+			log.Error(err)
+		}
+	}
 	switch {
 	case config.FlagVersion:
 		fmt.Printf("DCOS Signal Service\n Version: %s\n Revision: %s\n DC/OS Variant: %s\n", VERSION, REVISION, config.DCOSVariant)
@@ -122,16 +127,6 @@ func Start() {
 		}
 		if len(config.TestURL) > 0 {
 			log.SetLevel(log.DebugLevel)
-		}
-	}
-	if configErr != nil {
-		// There can be a number of errors during the config parsing. Several files,
-		// as well as other factors and we should definitly at least attempt to send
-		// data to segment even if we can't find things like the anon uuid file or
-		// signal service config json since those would indicate that something is
-		// no right, and signal service is all about surfacing that kind of data.
-		for _, err := range configErr {
-			log.Error(err)
 		}
 	}
 	if err := executeRunner(config); err != nil {
