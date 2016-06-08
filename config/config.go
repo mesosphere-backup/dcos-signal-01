@@ -179,8 +179,9 @@ func ParseArgsReturnConfig(args []string) (Config, []error) {
 
 	// Get the cluster-id generate by ZK consensus
 	if err := c.getClusterID(); err != nil {
-		c.ClusterID = err.Error()
+		// If cluster-id is not found signal service should fail.
 		errAry = append(errAry, err)
+		return c, errAry
 	}
 
 	// Get standard and extra JSON config off disk

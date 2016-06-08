@@ -43,16 +43,7 @@ func TestFlagParsing(t *testing.T) {
 			"-test-url", "http://foo.com",
 			"-cluster-id-path", tempAnonJson.Name(),
 			"-c", tempConfig.Name()})
-
-		testNoFile, noFileErr = ParseArgsReturnConfig([]string{})
 	)
-	// Test No Config Files (anon ID or config.json)
-	if testNoFile.ClusterID != "open /var/lib/dcos/cluster-id: no such file or directory" {
-		t.Error("Expected 'open /var/lib/dcos/cluster-id: no such file or directory', got ", testNoFile.ClusterID)
-	}
-	if noFileErr == nil {
-		t.Error("Expected error with no config, got ", noFileErr)
-	}
 
 	// -test
 	if testConfig.TestURL != "http://foo.com" {
