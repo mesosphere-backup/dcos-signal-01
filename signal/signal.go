@@ -113,6 +113,7 @@ func Start() {
 		for _, err := range configErr {
 			log.Error(err)
 		}
+		os.Exit(1)
 	}
 	switch {
 	case config.FlagVersion:
