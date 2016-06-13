@@ -10,7 +10,7 @@ func makeReporters(c config.Config) (chan Reporter, error) {
 		&Diagnostics{
 			Name: "diagnostics",
 			Endpoints: []string{
-				":1050/system/health/v1/report",
+				"/system/health/v1/report",
 			},
 			Method: "GET",
 			Headers: map[string]string{
@@ -20,7 +20,7 @@ func makeReporters(c config.Config) (chan Reporter, error) {
 		&Cosmos{
 			Name: "cosmos",
 			Endpoints: []string{
-				":7070/package/list",
+				"/cosmos/package/list",
 			},
 			Method: "POST",
 			Headers: map[string]string{
@@ -30,8 +30,8 @@ func makeReporters(c config.Config) (chan Reporter, error) {
 		&Mesos{
 			Name: "mesos",
 			Endpoints: []string{
-				":5050/frameworks",
-				":5050/metrics/snapshot",
+				"/mesos/frameworks",
+				"/mesos/metrics/snapshot",
 			},
 			Method: "GET",
 			Headers: map[string]string{

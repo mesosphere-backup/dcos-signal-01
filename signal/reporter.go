@@ -91,6 +91,8 @@ func PullReport(r Reporter, c config.Config) error {
 		}
 		defer resp.Body.Close()
 
+		log.Debugf("%s: %s", url, resp.Status)
+
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return err
