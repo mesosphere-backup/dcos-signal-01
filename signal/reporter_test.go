@@ -1,6 +1,7 @@
 package signal
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/dcos/dcos-signal/config"
@@ -53,13 +54,11 @@ func TestPullHealthReport(t *testing.T) {
 	var (
 		tr = testReportType{
 			Endpoints: []string{
-				"/package/list",
+				fmt.Sprintf("%s/package/list", server.URL),
 			},
 			Method: "GET",
 		}
-		tc = config.Config{
-			MasterURL: server.URL,
-		}
+		tc = config.Config{}
 	)
 
 	goodReportErr := PullReport(&tr, tc)

@@ -1,6 +1,7 @@
 package signal
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/dcos/dcos-signal/config"
@@ -9,8 +10,8 @@ import (
 var (
 	testMesos = Mesos{
 		Endpoints: []string{
-			"/frameworks",
-			"/system/stats",
+			fmt.Sprintf("%s/frameworks", server.URL),
+			fmt.Sprintf("%s/system/stats", server.URL),
 		},
 		Method: "POST",
 	}
@@ -23,7 +24,6 @@ func testMesosTrack(t *testing.T) {
 	c.DCOSVersion = "test_version"
 	c.GenProvider = "test_provider"
 	c.DCOSVariant = "test_variant"
-	c.MasterURL = server.URL
 
 	pullErr := PullReport(&testMesos, c)
 	if pullErr != nil {

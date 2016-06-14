@@ -2,7 +2,6 @@ package signal
 
 import (
 	"crypto/tls"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -44,18 +43,17 @@ type Reporter interface {
 // PullReport executes retrival of a service report
 func PullReport(r Reporter, c config.Config) error {
 	for _, endpoint := range r.getEndpoints() {
-		requestURL := fmt.Sprintf("%s%s", c.MasterURL, endpoint)
-		log.Debugf("Attempting to pull report from %s", requestURL)
-		url, err := url.Parse(requestURL)
+		url, err := url.Parse(endpoint)
 		if err != nil {
 			return err
 		}
 
+		log.Debugf("Attempting to pull report from %s", endpoint)
 		client := http.Client{
 			Timeout: time.Duration(5 * time.Second),
 		}
 
-		if c.TLSEnabled {
+		if url.Scheme == "https" {
 			var tlsClientConfig *tls.Config
 			if c.CAPool == nil {
 				// do HTTPS without certificate verification.
@@ -95,7 +93,7 @@ func PullReport(r Reporter, c config.Config) error {
 		if err != nil {
 			return err
 		}
-		log.Debugf("Successful request to %s", requestURL)
+		log.Debugf("Successful request to %s", endpoint)
 
 		if err := r.setReport(body); err != nil {
 			return err
