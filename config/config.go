@@ -5,10 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
@@ -16,10 +14,10 @@ import (
 
 // Config defines dcos-signal configuration
 type Config struct {
-	// MasterURL is gained from execution of ip-detect
-	MasterURL string
-	// Make requests using HTTP or HTTPS
-	TLSEnabled bool `json:"tls_enabled"`
+	// URL Configuration for Reports
+	DiagnosticsURLs []string `json:"diagnostics_urls"`
+	CosmosURLs      []string `json:"cosmos_urls"`
+	MesosURLs       []string `json:"mesos_urls"`
 
 	// CA Configuration for TLS requests
 	CACertPath string `json:"ca_cert_path"`
@@ -77,42 +75,7 @@ func (c *Config) setFlags(fs *flag.FlagSet) {
 	fs.StringVar(&c.DCOSClusterIDPath, "cluster-id-path", c.DCOSClusterIDPath, "Override path to DCOS anonymous ID.")
 	fs.StringVar(&c.SignalServiceConfigPath, "c", c.SignalServiceConfigPath, "Path to dcos-signal-service.conf.")
 	fs.StringVar(&c.SegmentKey, "segment-key", c.SegmentKey, "Key for segmentIO.")
-	fs.StringVar(&c.MasterURL, "master-url", c.MasterURL, "Override the IP to the master host")
 	fs.StringVar(&c.TestURL, "test-url", c.TestURL, "Override default test URL")
-}
-
-func (c *Config) setMasterURL() error {
-	log.Debug("Calculating Master URL")
-	if c.MasterURL != "" {
-		log.Debugf("MasterURL already set in memory, not regenerating: %s", c.MasterURL)
-		return nil
-	}
-
-	detectIPCommand := os.Getenv("MESOS_IP_DISCOVERY_COMMAND")
-	if detectIPCommand == "" {
-		detectIPCommand = "/opt/mesosphere/bin/detect_ip"
-		log.Debugf("Environment variable MESOS_IP_DISCOVERY_COMMAND is not set, using default location: %s", detectIPCommand)
-	}
-
-	out, err := exec.Command(detectIPCommand).Output()
-	if err != nil {
-		log.Errorf("Unable to execute %s: %s", detectIPCommand, err.Error())
-		// Best effort, some services are still available from this URI
-		out = []byte("localhost")
-	}
-
-	masterIP := strings.TrimRight(string(out), "\n")
-	c.MasterURL = fmt.Sprintf("http://%s", masterIP)
-	if !c.TLSEnabled {
-		log.Debug("TLS disabled, protocol set to HTTP")
-	} else {
-		log.Debug("TLS enabled, protocol set to HTTPS")
-		c.MasterURL = fmt.Sprintf("https://%s", masterIP)
-	}
-
-	log.Debugf("Master URL Set: %s", c.MasterURL)
-
-	return nil
 }
 
 func (c *Config) getClusterID() error {
@@ -189,11 +152,6 @@ func ParseArgsReturnConfig(args []string) (Config, []error) {
 	if err := c.getExternalConfig(); err != nil {
 		c.GenProvider = err.Error()
 		c.CustomerKey = err.Error()
-		errAry = append(errAry, err)
-	}
-
-	// Set the MasterURL from default or ip-detect
-	if err := c.setMasterURL(); err != nil {
 		errAry = append(errAry, err)
 	}
 

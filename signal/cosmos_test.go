@@ -1,6 +1,7 @@
 package signal
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/dcos/dcos-signal/config"
@@ -8,8 +9,9 @@ import (
 
 var (
 	testCosmos = Cosmos{
-		Endpoints: []string{"/package/list"},
-		Method:    "POST",
+		Endpoints: []string{
+			fmt.Sprintf("%s/package/list", server.URL)},
+		Method: "POST",
 	}
 )
 
@@ -20,7 +22,6 @@ func TestCosmosTrack(t *testing.T) {
 	c.DCOSVersion = "test_version"
 	c.GenProvider = "test_provider"
 	c.DCOSVariant = "test_variant"
-	c.MasterURL = server.URL
 
 	pullErr := PullReport(&testCosmos, c)
 	if pullErr != nil {

@@ -1,6 +1,7 @@
 package signal
 
 import (
+	"fmt"
 	"net/http/httptest"
 	"testing"
 
@@ -10,8 +11,9 @@ import (
 var (
 	healthServer = httptest.NewServer(mockRouter())
 	testDiag     = Diagnostics{
-		Endpoints: []string{"/system/health/v1/report"},
-		Method:    "GET",
+		Endpoints: []string{
+			fmt.Sprintf("%s/system/health/v1/report", server.URL)},
+		Method: "GET",
 	}
 )
 
@@ -22,7 +24,6 @@ func TestDiagnosticsTrack(t *testing.T) {
 	c.DCOSVersion = "test_version"
 	c.GenProvider = "test_provider"
 	c.DCOSVariant = "test_variant"
-	c.MasterURL = server.URL
 
 	pullErr := PullReport(&testDiag, c)
 	if pullErr != nil {
