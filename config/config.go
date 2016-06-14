@@ -21,6 +21,11 @@ type Config struct {
 	// Make requests using HTTP or HTTPS
 	TLSEnabled bool `json:"tls_enabled"`
 
+	// URL Configuration for Reports
+	DiagnosticsURLs []string `json:"diagnostics_urls"`
+	CosmosURLs      []string `json:"cosmos_urls"`
+	MesosURLs       []string `json:"mesos_urls"`
+
 	// CA Configuration for TLS requests
 	CACertPath string `json:"ca_cert_path"`
 	CAPool     *x509.CertPool
