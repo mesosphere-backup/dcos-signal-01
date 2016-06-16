@@ -5,6 +5,8 @@ import (
 
 	"github.com/dcos/dcos-signal/config"
 	"github.com/segmentio/analytics-go"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 // Complete report used by signal service, composed of all requests
@@ -61,6 +63,9 @@ func (d *Mesos) getHeaders() map[string]string {
 }
 
 func (d *Mesos) getEndpoints() []string {
+	if len(d.Endpoints) != 2 {
+		log.Errorf("Mesos needs 2 endpoints, got %d", len(d.Endpoints))
+	}
 	return d.Endpoints
 }
 
