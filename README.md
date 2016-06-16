@@ -1,18 +1,12 @@
 # DCOS Signal Service [![velocity](http://velocity.mesosphere.com/service/velocity/buildStatus/icon?job=public-dcos-signal-service-master)](http://velocity.mesosphere.com/service/velocity/job/public-dcos-signal-service-master/)
-The signal service is a passive data forwarding service for the system health API. The signal service acts as a middleware which runs GET requests to 3DT on masters every hour, forming a POST to send to SegementIO for our support team. 
+The signal service is a passive data forwarding service for telemetry and analytics gathering. The signal service acts as a middleware which runs GET requests to 3DT, Mesos, and Cosmos on masters on a systemd timer.   
 
-## Go Requirements
+## SegmentIO Library Used 
 [SegmentIO](https://segment.com/docs/libraries/go/)
 
 ## Build
 ```
 make build
-```
-
-Or if you're running in an EE install
-
-```
-make build VARIANT=enterprise
 ```
 
 ## Run
@@ -25,25 +19,39 @@ dcos-signal
 This will query a running 3DT environment and post the results to segmentIO.
 
 ## Test
+Unittest:
 
 ```
 make test
 ```
 
+Integration test locally:
+
+```
+netcat -lk 4444 &
+go run dcos_signal.go -v -test-url http://localhost:4444
+```
+
+Integration test in an actually integrated scenario:
+
+```
+ssh myuser@mymaster.com
+netcat -lk 4444 &
+./dcos_signal -v -test-url http://localhost:4444
+```
+
 ## CLI Arguments
 <pre>
 Usage:
-  -anonymous-id-path string
-        Override path to DCOS anonymous ID. (default "/var/lib/dcos_anonymous_uuid.json")
-  -c string
-        Path to dcos-signal-service.conf. (default "/etc/dcos-signal-config.json")
-  -report-endpoint string
-        Override default health endpoint. (default "/system/health/v1/report")
-  -report-host string
-        Override the default host to query the health report from. (default "localhost")
-  -report-port int
-        Override the default health API port. (default 1050)
-  -v    Verbose logging mode.
-  -version
-        Print version and exit.
+  -c                string | Path to dcos-signal-service.conf. (default "/opt/mesosphere/etc/dcos-signal-config.json")
+  
+  -cluster-id-path  string | Override path to DCOS anonymous ID. (default "/var/lib/dcos/cluster-id")
+  
+  -segment-key      string | Key for segmentIO.
+
+  -test-url         string | URL to send would-be SegmentIO data to as JSON blob.
+  
+  -v                  bool | Verbose logging mode.
+  
+  -version            bool | Print version and exit.
 </pre>
