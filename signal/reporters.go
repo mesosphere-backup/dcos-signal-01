@@ -8,11 +8,7 @@ func makeReporters(c config.Config) (chan Reporter, error) {
 
 	var reporters = []Reporter{
 		&Diagnostics{
-			Name: "diagnostics",
-			// Open Endpoints:
-			//   :1050/system/health/v1/report
-			// EE Endpoints:
-			//   /system/health/v1/report
+			Name:      "diagnostics",
 			Endpoints: c.DiagnosticsURLs,
 			Method:    "GET",
 			Headers: map[string]string{
@@ -20,11 +16,7 @@ func makeReporters(c config.Config) (chan Reporter, error) {
 			},
 		},
 		&Cosmos{
-			Name: "cosmos",
-			// Open Endpoints:
-			//   :7070/package/list
-			// EE Endpoints:
-			//   /cosmos/package/list
+			Name:      "cosmos",
 			Endpoints: c.CosmosURLs,
 			Method:    "POST",
 			Headers: map[string]string{
@@ -32,11 +24,7 @@ func makeReporters(c config.Config) (chan Reporter, error) {
 			},
 		},
 		&Mesos{
-			Name: "mesos",
-			// Open Endpoints:
-			//   :5050/frameworks, :5050/metrics/snapshot
-			// EE Endpoints:
-			//   /mesos/frameworks, /mesos/metrics/snapshot
+			Name:      "mesos",
 			Endpoints: c.MesosURLs,
 			Method:    "GET",
 			Headers: map[string]string{
