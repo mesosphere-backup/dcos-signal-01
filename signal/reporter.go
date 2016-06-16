@@ -2,6 +2,8 @@ package signal
 
 import (
 	"crypto/tls"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -42,63 +44,66 @@ type Reporter interface {
 
 // PullReport executes retrival of a service report
 func PullReport(r Reporter, c config.Config) error {
-	for _, endpoint := range r.getEndpoints() {
-		url, err := url.Parse(endpoint)
-		if err != nil {
-			return err
-		}
+	if len(r.getEndpoints()) != 0 {
+		for _, endpoint := range r.getEndpoints() {
+			url, err := url.Parse(endpoint)
+			if err != nil {
+				return err
+			}
 
-		log.Debugf("Attempting to pull report from %s", endpoint)
-		client := http.Client{
-			Timeout: time.Duration(5 * time.Second),
-		}
+			log.Debugf("Attempting to pull report from %s", endpoint)
+			client := http.Client{
+				Timeout: time.Duration(5 * time.Second),
+			}
 
-		if url.Scheme == "https" {
-			var tlsClientConfig *tls.Config
-			if c.CAPool == nil {
-				// do HTTPS without certificate verification.
-				tlsClientConfig = &tls.Config{
-					InsecureSkipVerify: true,
+			if url.Scheme == "https" {
+				var tlsClientConfig *tls.Config
+				if c.CAPool == nil {
+					// do HTTPS without certificate verification.
+					tlsClientConfig = &tls.Config{
+						InsecureSkipVerify: true,
+					}
+				} else {
+					tlsClientConfig = &tls.Config{
+						RootCAs: c.CAPool,
+					}
 				}
-			} else {
-				tlsClientConfig = &tls.Config{
-					RootCAs: c.CAPool,
+
+				client.Transport = &http.Transport{
+					TLSClientConfig: tlsClientConfig,
 				}
 			}
 
-			client.Transport = &http.Transport{
-				TLSClientConfig: tlsClientConfig,
+			req := &http.Request{
+				Method: r.getMethod(),
+				URL:    url,
+				Header: http.Header{},
+			}
+
+			headers := r.getHeaders()
+			for headerName, headerValue := range headers {
+				// ex. headerName = "Content-Type" and headerValue = "application/json"
+				req.Header.Add(headerName, headerValue)
+
+			}
+			resp, err := client.Do(req)
+			if err != nil {
+				return err
+			}
+			defer resp.Body.Close()
+
+			body, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return err
+			}
+			log.Debugf("Successful request to %s", endpoint)
+
+			if err := r.setReport(body); err != nil {
+				return err
 			}
 		}
-
-		req := &http.Request{
-			Method: r.getMethod(),
-			URL:    url,
-			Header: http.Header{},
-		}
-
-		headers := r.getHeaders()
-		for headerName, headerValue := range headers {
-			// ex. headerName = "Content-Type" and headerValue = "application/json"
-			req.Header.Add(headerName, headerValue)
-
-		}
-		resp, err := client.Do(req)
-		if err != nil {
-			return err
-		}
-		defer resp.Body.Close()
-
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return err
-		}
-		log.Debugf("Successful request to %s", endpoint)
-
-		if err := r.setReport(body); err != nil {
-			return err
-		}
+	} else {
+		return errors.New(fmt.Sprintf("Reporter %s has no endpoints to query.", r.getName()))
 	}
-
 	return nil
 }

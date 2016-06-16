@@ -20,10 +20,9 @@ var (
 
 func runner(done chan Reporter, reporters chan Reporter, c config.Config, w int) error {
 	for r := range reporters {
-		log.Debugf("Worker %d: Processing job for %+v", w, r)
+		log.Debugf("Worker %d: Processing job for %s", w, r.getName())
 		err := PullReport(r, c)
 		if err != nil {
-			log.Errorf("Worker %d: %s", w, err)
 			r.setError(err.Error())
 			done <- r
 			return err
@@ -31,7 +30,6 @@ func runner(done chan Reporter, reporters chan Reporter, c config.Config, w int)
 
 		err = r.setTrack(c)
 		if err != nil {
-			log.Errorf("Worker %d: %s", w, err)
 			r.setError(err.Error())
 			done <- r
 			return err
