@@ -5,6 +5,8 @@ import (
 
 	"github.com/dcos/dcos-signal/config"
 	"github.com/segmentio/analytics-go"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 type CosmosPackages struct {
@@ -52,6 +54,9 @@ func (c *Cosmos) getHeaders() map[string]string {
 }
 
 func (c *Cosmos) getEndpoints() []string {
+	if len(c.Endpoints) != 1 {
+		log.Errorf("Cosmos needs 1 endpoint, got %d", len(c.Endpoints))
+	}
 	return c.Endpoints
 }
 

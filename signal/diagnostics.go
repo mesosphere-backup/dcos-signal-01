@@ -72,6 +72,9 @@ func (d *Diagnostics) getHeaders() map[string]string {
 }
 
 func (d *Diagnostics) getEndpoints() []string {
+	if len(d.Endpoints) != 1 {
+		log.Errorf("Diagnostics needs 1 endpoint, got %d", len(d.Endpoints))
+	}
 	return d.Endpoints
 }
 
