@@ -43,7 +43,7 @@ type Diagnostics struct {
 	Method    string
 	Headers   map[string]string
 	Track     *analytics.Track
-	Error     string
+	Error     []string
 }
 
 func (d *Diagnostics) getName() string {
@@ -82,12 +82,12 @@ func (d *Diagnostics) getMethod() string {
 	return d.Method
 }
 
-func (d *Diagnostics) getError() string {
+func (d *Diagnostics) getError() []string {
 	return d.Error
 }
 
 func (d *Diagnostics) setError(err string) {
-	d.Error = err
+	d.Error = append(d.Error, err)
 }
 
 func (d *Diagnostics) setTrack(c config.Config) error {

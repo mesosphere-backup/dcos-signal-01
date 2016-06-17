@@ -39,7 +39,7 @@ type Reporter interface {
 	// Set an error message
 	setError(string)
 	// Get an error message
-	getError() string
+	getError() []string
 }
 
 // PullReport executes retrival of a service report
@@ -49,7 +49,7 @@ func PullReport(endpoint string, r Reporter, c config.Config) error {
 		return err
 	}
 
-	log.Debugf("Attempting to pull report from %s", endpoint)
+	log.Debugf("Pulling from %s", endpoint)
 	client := http.Client{
 		Timeout: time.Duration(5 * time.Second),
 	}
@@ -94,13 +94,13 @@ func PullReport(endpoint string, r Reporter, c config.Config) error {
 		if err != nil {
 			return err
 		}
-		log.Debugf("Successful request to %s", endpoint)
+		log.Debugf("Response %s: %s, proto %s", resp.Proto, endpoint, resp.Status)
 
 		if err := r.setReport(body); err != nil {
 			return err
 		}
 	} else {
-		log.Errorf("Response from %s: %s", endpoint, resp.Status)
+		return errors.New(fmt.Sprintf("Response %s %s: %s", resp.Proto, endpoint, resp.Status))
 	}
 	return nil
 }

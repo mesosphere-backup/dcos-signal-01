@@ -22,19 +22,21 @@ func runner(done chan Reporter, reporters chan Reporter, c config.Config, w int)
 	for r := range reporters {
 		if len(r.getEndpoints()) != 0 {
 			for _, endpoint := range r.getEndpoints() {
-				log.Debugf("Worker %d: Processing job for %s", w, r.getName())
+				log.Debugf("Worker %d: Processing %s endpoint %s", w, r.getName(), endpoint)
 				err := PullReport(endpoint, r, c)
 				if err != nil {
 					r.setError(err.Error())
 					done <- r
-					return err
+					continue
+					//return err
 				}
 
 				err = r.setTrack(c)
 				if err != nil {
 					r.setError(err.Error())
 					done <- r
-					return err
+					continue
+					//return err
 				}
 				done <- r
 			}
@@ -94,7 +96,9 @@ func executeRunner(c config.Config) error {
 				log.Debugf("Adding test data for %s: %+v", r.getName(), r.getTrack())
 				tester[r.getName()] = r.getTrack()
 			} else if len(r.getError()) > 0 {
-				log.Errorf("%s: %s", r.getName(), r.getError())
+				for _, err := range r.getError() {
+					log.Errorf("%s: %s", r.getName(), err)
+				}
 			} else {
 				r.sendTrack(c)
 			}
