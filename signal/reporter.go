@@ -84,22 +84,25 @@ func PullReport(r Reporter, c config.Config) error {
 			for headerName, headerValue := range headers {
 				// ex. headerName = "Content-Type" and headerValue = "application/json"
 				req.Header.Add(headerName, headerValue)
-
 			}
+			log.Infof("Request %s: %+v", endpoint, req)
 			resp, err := client.Do(req)
 			if err != nil {
 				return err
 			}
 			defer resp.Body.Close()
+			if resp.StatusCode == 200 {
+				body, err := ioutil.ReadAll(resp.Body)
+				if err != nil {
+					return err
+				}
+				log.Debugf("Successful request to %s", endpoint)
 
-			body, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				return err
-			}
-			log.Debugf("Successful request to %s", endpoint)
-
-			if err := r.setReport(body); err != nil {
-				return err
+				if err := r.setReport(body); err != nil {
+					return err
+				}
+			} else {
+				log.Errorf("Response from %s: %s", endpoint, resp.Status)
 			}
 		}
 	} else {

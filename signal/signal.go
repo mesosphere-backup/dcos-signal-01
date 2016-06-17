@@ -85,7 +85,7 @@ func executeRunner(c config.Config) error {
 		select {
 		case r := <-done:
 			if len(c.TestURL) > 0 {
-				log.Info("Adding test data")
+				log.Debugf("Adding test data for %s: %+v", r.getName(), r.getTrack())
 				tester[r.getName()] = r.getTrack()
 			} else if len(r.getError()) > 0 {
 				log.Errorf("%s: %s", r.getName(), r.getError())
