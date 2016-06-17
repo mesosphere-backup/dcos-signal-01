@@ -20,21 +20,27 @@ var (
 
 func runner(done chan Reporter, reporters chan Reporter, c config.Config, w int) error {
 	for r := range reporters {
-		log.Debugf("Worker %d: Processing job for %s", w, r.getName())
-		err := PullReport(r, c)
-		if err != nil {
-			r.setError(err.Error())
-			done <- r
-			return err
-		}
+		if len(r.getEndpoints()) != 0 {
+			for _, endpoint := range r.getEndpoints() {
+				log.Debugf("Worker %d: Processing job for %s", w, r.getName())
+				err := PullReport(endpoint, r, c)
+				if err != nil {
+					r.setError(err.Error())
+					done <- r
+					return err
+				}
 
-		err = r.setTrack(c)
-		if err != nil {
-			r.setError(err.Error())
-			done <- r
-			return err
+				err = r.setTrack(c)
+				if err != nil {
+					r.setError(err.Error())
+					done <- r
+					return err
+				}
+				done <- r
+			}
+		} else {
+			return errors.New(fmt.Sprintf("Reporter %s has no endpoints.", r.getName()))
 		}
-		done <- r
 	}
 	return nil
 }
