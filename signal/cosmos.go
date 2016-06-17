@@ -24,7 +24,7 @@ type Cosmos struct {
 	Method    string
 	Headers   map[string]string
 	Track     *analytics.Track
-	Error     string
+	Error     []string
 	Name      string
 }
 
@@ -64,12 +64,12 @@ func (c *Cosmos) getMethod() string {
 	return c.Method
 }
 
-func (c *Cosmos) getError() string {
+func (c *Cosmos) getError() []string {
 	return c.Error
 }
 
 func (c *Cosmos) setError(err string) {
-	c.Error = err
+	c.Error = append(c.Error, err)
 }
 
 func (c *Cosmos) setTrack(config config.Config) error {
