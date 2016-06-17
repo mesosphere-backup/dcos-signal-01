@@ -28,7 +28,6 @@ func runner(done chan Reporter, reporters chan Reporter, c config.Config, w int)
 					r.setError(err.Error())
 					done <- r
 					continue
-					//return err
 				}
 
 				err = r.setTrack(c)
@@ -36,7 +35,6 @@ func runner(done chan Reporter, reporters chan Reporter, c config.Config, w int)
 					r.setError(err.Error())
 					done <- r
 					continue
-					//return err
 				}
 				done <- r
 			}
