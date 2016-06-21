@@ -77,7 +77,7 @@ func (d *Mesos) getError() []string {
 	return d.Error
 }
 
-func (d *Mesos) setError(err string) {
+func (d *Mesos) appendError(err string) {
 	d.Error = append(d.Error, err)
 }
 

@@ -68,7 +68,7 @@ func (c *Cosmos) getError() []string {
 	return c.Error
 }
 
-func (c *Cosmos) setError(err string) {
+func (c *Cosmos) appendError(err string) {
 	c.Error = append(c.Error, err)
 }
 

@@ -37,7 +37,7 @@ type Reporter interface {
 	// Get the name of this Reporter
 	getName() string
 	// Set an error message
-	setError(string)
+	appendError(string)
 	// Get an error message
 	getError() []string
 }
@@ -89,18 +89,19 @@ func PullReport(endpoint string, r Reporter, c config.Config) error {
 		return err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode == 200 {
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return err
-		}
-		log.Debugf("Response %s: %s, proto %s", resp.Proto, endpoint, resp.Status)
-
-		if err := r.setReport(body); err != nil {
-			return err
-		}
-	} else {
+	if resp.StatusCode != 200 {
 		return errors.New(fmt.Sprintf("Response %s %s: %s", resp.Proto, endpoint, resp.Status))
 	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	log.Debugf("Response %s: %s, proto %s", resp.Proto, endpoint, resp.Status)
+
+	if err := r.setReport(body); err != nil {
+		return err
+	}
+
 	return nil
 }

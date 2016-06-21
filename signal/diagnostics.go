@@ -86,7 +86,7 @@ func (d *Diagnostics) getError() []string {
 	return d.Error
 }
 
-func (d *Diagnostics) setError(err string) {
+func (d *Diagnostics) appendError(err string) {
 	d.Error = append(d.Error, err)
 }
 

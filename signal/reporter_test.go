@@ -25,7 +25,7 @@ func (t *testReportType) sendTrack(config.Config) error { return nil }
 
 func (t *testReportType) getName() string { return "" }
 
-func (t *testReportType) setError(string) {}
+func (t *testReportType) appendError(string) {}
 
 func (t *testReportType) getError() []string { return []string{""} }
 
