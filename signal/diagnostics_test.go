@@ -25,11 +25,9 @@ func TestDiagnosticsTrack(t *testing.T) {
 	c.GenProvider = "test_provider"
 	c.DCOSVariant = "test_variant"
 
-	for _, e := range testDiag.Endpoints {
-		pullErr := PullReport(e, &testDiag, c)
-		if pullErr != nil {
-			t.Error("Got error pulling from test server, ", pullErr)
-		}
+	pullErr := PullReport(&testDiag, c)
+	if pullErr != nil {
+		t.Error("Got error pulling from test server, ", pullErr)
 	}
 
 	setupErr := testDiag.setTrack(c)
