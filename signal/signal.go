@@ -25,14 +25,14 @@ func runner(done chan Reporter, reporters chan Reporter, c config.Config, w int)
 				log.Debugf("Worker %d: Processing %s endpoint %s", w, r.getName(), endpoint)
 				err := PullReport(endpoint, r, c)
 				if err != nil {
-					r.setError(err.Error())
+					r.appendError(err.Error())
 					done <- r
 					continue
 				}
 
 				err = r.setTrack(c)
 				if err != nil {
-					r.setError(err.Error())
+					r.appendError(err.Error())
 					done <- r
 					continue
 				}

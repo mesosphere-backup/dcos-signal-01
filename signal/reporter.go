@@ -37,7 +37,7 @@ type Reporter interface {
 	// Get the name of this Reporter
 	getName() string
 	// Set an error message
-	setError(string)
+	appendError(string)
 	// Get an error message
 	getError() []string
 }
