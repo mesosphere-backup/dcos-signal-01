@@ -20,21 +20,27 @@ var (
 
 func runner(done chan Reporter, reporters chan Reporter, c config.Config, w int) error {
 	for r := range reporters {
-		log.Debugf("Worker %d: Processing job for %s", w, r.getName())
-		err := PullReport(r, c)
-		if err != nil {
-			r.setError(err.Error())
-			done <- r
-			return err
-		}
+		if len(r.getEndpoints()) != 0 {
+			for _, endpoint := range r.getEndpoints() {
+				log.Debugf("Worker %d: Processing %s endpoint %s", w, r.getName(), endpoint)
+				err := PullReport(endpoint, r, c)
+				if err != nil {
+					r.setError(err.Error())
+					done <- r
+					continue
+				}
 
-		err = r.setTrack(c)
-		if err != nil {
-			r.setError(err.Error())
-			done <- r
-			return err
+				err = r.setTrack(c)
+				if err != nil {
+					r.setError(err.Error())
+					done <- r
+					continue
+				}
+				done <- r
+			}
+		} else {
+			return errors.New(fmt.Sprintf("Reporter %s has no endpoints.", r.getName()))
 		}
-		done <- r
 	}
 	return nil
 }
@@ -85,10 +91,12 @@ func executeRunner(c config.Config) error {
 		select {
 		case r := <-done:
 			if len(c.TestURL) > 0 {
-				log.Info("Adding test data")
+				log.Debugf("Adding test data for %s: %+v", r.getName(), r.getTrack())
 				tester[r.getName()] = r.getTrack()
 			} else if len(r.getError()) > 0 {
-				log.Errorf("%s: %s", r.getName(), r.getError())
+				for _, err := range r.getError() {
+					log.Errorf("%s: %s", r.getName(), err)
+				}
 			} else {
 				r.sendTrack(c)
 			}
