@@ -25,11 +25,9 @@ func testMesosTrack(t *testing.T) {
 	c.GenProvider = "test_provider"
 	c.DCOSVariant = "test_variant"
 
-	for _, e := range testMesos.Endpoints {
-		pullErr := PullReport(e, &testMesos, c)
-		if pullErr != nil {
-			t.Error("Expected no errors pulling report from test server, got", pullErr)
-		}
+	pullErr := PullReport(&testMesos, c)
+	if pullErr != nil {
+		t.Error("Expected no errors pulling report from test server, got", pullErr)
 	}
 
 	setupErr := testMesos.setTrack(c)

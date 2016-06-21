@@ -23,11 +23,9 @@ func TestCosmosTrack(t *testing.T) {
 	c.GenProvider = "test_provider"
 	c.DCOSVariant = "test_variant"
 
-	for _, endpoint := range testCosmos.Endpoints {
-		pullErr := PullReport(endpoint, &testCosmos, c)
-		if pullErr != nil {
-			t.Error("Expected no errors pulling report from test server, got", pullErr)
-		}
+	pullErr := PullReport(&testCosmos, c)
+	if pullErr != nil {
+		t.Error("Expected no errors pulling report from test server, got", pullErr)
 	}
 
 	setupErr := testCosmos.setTrack(c)

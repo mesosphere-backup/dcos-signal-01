@@ -27,7 +27,7 @@ func (t *testReportType) getName() string { return "" }
 
 func (t *testReportType) setError(string) {}
 
-func (t *testReportType) getError() []string { return []string{""} }
+func (t *testReportType) getError() string { return "" }
 
 func (t *testReportType) setEndpoints(url []string) { t.Endpoints = url }
 
@@ -56,15 +56,13 @@ func TestPullHealthReport(t *testing.T) {
 			Endpoints: []string{
 				fmt.Sprintf("%s/package/list", server.URL),
 			},
-			Method: "POST",
+			Method: "GET",
 		}
 		tc = config.Config{}
 	)
 
-	for _, e := range tr.Endpoints {
-		goodReportErr := PullReport(e, &tr, tc)
-		if goodReportErr != nil {
-			t.Error("Expected nil error, got ", goodReportErr.Error())
-		}
+	goodReportErr := PullReport(&tr, tc)
+	if goodReportErr != nil {
+		t.Error("Expected nil error, got ", goodReportErr.Error)
 	}
 }

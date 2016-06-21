@@ -34,7 +34,7 @@ type Mesos struct {
 	Method    string
 	Headers   map[string]string
 	Track     *analytics.Track
-	Error     []string
+	Error     string
 	Name      string
 }
 
@@ -73,12 +73,12 @@ func (d *Mesos) getMethod() string {
 	return d.Method
 }
 
-func (d *Mesos) getError() []string {
+func (d *Mesos) getError() string {
 	return d.Error
 }
 
 func (d *Mesos) setError(err string) {
-	d.Error = append(d.Error, err)
+	d.Error = err
 }
 
 func (d *Mesos) setTrack(c config.Config) error {
