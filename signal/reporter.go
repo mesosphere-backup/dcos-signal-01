@@ -1,6 +1,7 @@
 package signal
 
 import (
+	"bytes"
 	"crypto/tls"
 	"errors"
 	"fmt"
@@ -72,11 +73,10 @@ func PullReport(endpoint string, r Reporter, c config.Config) error {
 		}
 	}
 
-	req := &http.Request{
-		Method: r.getMethod(),
-		URL:    url,
-		Header: http.Header{},
-	}
+	urlStr := fmt.Sprintf("%v", url)
+	method := r.getMethod()
+	reqBody := "{}"
+	req, _ := http.NewRequest(method, urlStr, bytes.NewBufferString(reqBody))
 
 	headers := r.getHeaders()
 	for headerName, headerValue := range headers {

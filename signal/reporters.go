@@ -20,7 +20,8 @@ func makeReporters(c config.Config) (chan Reporter, error) {
 			Endpoints: c.CosmosURLs,
 			Method:    "POST",
 			Headers: map[string]string{
-				"content-type": "application/vnd.dcos.package.list-request",
+				"content-type": "application/vnd.dcos.package.list-request+json;charset=utf-8;version=v1",
+				"accept":       "application/vnd.dcos.package.list-response+json;charset=utf-8;version=v1",
 			},
 		},
 		&Mesos{

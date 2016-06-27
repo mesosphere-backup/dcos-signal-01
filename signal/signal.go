@@ -90,6 +90,9 @@ func executeRunner(c config.Config) error {
 	for processed <= workers {
 		select {
 		case r := <-done:
+			for _, err := range r.getError() {
+				log.Errorf("%s: %s", r.getName(), err)
+			}
 			if len(c.TestURL) > 0 {
 				log.Debugf("Adding test data for %s: %+v", r.getName(), r.getTrack())
 				tester[r.getName()] = r.getTrack()
@@ -100,6 +103,7 @@ func executeRunner(c config.Config) error {
 			} else {
 				r.sendTrack(c)
 			}
+			log.Warnf("processed %d, workers %d", processed, workers)
 			processed += 1
 		}
 	}

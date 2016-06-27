@@ -16,7 +16,7 @@ import (
 var mockNodes = []*Node{
 	&Node{
 		Role:   "master",
-		Ip:     "10.0.0.1",
+		IP:     "10.0.0.1",
 		Host:   "foo.master",
 		Health: 0,
 		Output: map[string]string{
@@ -27,7 +27,7 @@ var mockNodes = []*Node{
 	},
 	&Node{
 		Role:   "slave",
-		Ip:     "10.0.0.2",
+		IP:     "10.0.0.2",
 		Host:   "foo.slave",
 		Health: 1,
 		Output: map[string]string{
