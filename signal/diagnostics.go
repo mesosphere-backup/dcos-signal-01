@@ -29,7 +29,7 @@ type Unit struct {
 // Node defines the JSON for the node field in the HealthReport
 type Node struct {
 	Role   string
-	Ip     string
+	IP     string
 	Host   string
 	Health int
 	Output map[string]string
@@ -104,13 +104,18 @@ func (d *Diagnostics) setTrack(c config.Config) error {
 		totalUnits := len(unit.Nodes)
 		totalUnhealthyUnits := 0
 		for _, node := range unit.Nodes {
-			// If the length of the output is greater than 0, then the unit can be considered unhealthy on that
-			// specific node. As of writing this, we had no other way to determine by node how many unhealthy
-			// units exist. This is because if any unit is unhealthy, units are unhealthy.
-			if len(node.Output[unit.UnitName]) > 0 {
-				log.Debug("==> UNHEALTHY HOST:")
-				log.Debug(node.Output[unit.UnitName])
+			if node.Health != 0 {
+				log.Debugf("UNHEALTHY NODE: %s", node.IP)
 				totalUnhealthyUnits++
+			} else {
+				for _, nodeUnit := range node.Units {
+					if unit.UnitName == nodeUnit.UnitName {
+						if nodeUnit.Health != 0 {
+							log.Debugf("UNHEALTHY UNIT: %s", node.Output[unit.UnitName])
+							totalUnhealthyUnits++
+						}
+					}
+				}
 			}
 			segmentUnitTotalKey := CreateUnitTotalKey(unit.UnitName)
 			segmentUnitUnhealthyKey := CreateUnitUnhealthyKey(unit.UnitName)
