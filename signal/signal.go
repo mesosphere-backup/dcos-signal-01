@@ -34,8 +34,8 @@ func runner(done chan Reporter, reporters chan Reporter, c config.Config, w int)
 			if err != nil {
 				r.appendError(err.Error())
 			}
-			done <- r
 		}
+		done <- r
 	}
 	return nil
 }
