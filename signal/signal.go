@@ -28,19 +28,14 @@ func runner(done chan Reporter, reporters chan Reporter, c config.Config, w int)
 			err := PullReport(endpoint, r, c)
 			if err != nil {
 				r.appendError(err.Error())
-				done <- r
-				continue
 			}
 
 			err = r.setTrack(c)
 			if err != nil {
 				r.appendError(err.Error())
-				done <- r
-				continue
 			}
-			done <- r
 		}
-
+		done <- r
 	}
 	return nil
 }
