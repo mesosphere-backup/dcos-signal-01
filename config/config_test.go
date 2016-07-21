@@ -40,14 +40,14 @@ func TestFlagParsing(t *testing.T) {
 			"-c", tempConfig.Name()})
 
 		testConfig, testConfigErr = ParseArgsReturnConfig([]string{
-			"-test-url", "http://foo.com",
+			"-test",
 			"-cluster-id-path", tempAnonJson.Name(),
 			"-c", tempConfig.Name()})
 	)
 
 	// -test
-	if testConfig.TestURL != "http://foo.com" {
-		t.Error("Expected test flag to be true, got ", testConfig.TestURL)
+	if !testConfig.FlagTest {
+		t.Error("Expected test flag to be true, got ", testConfig.FlagTest)
 	}
 	if testConfigErr != nil {
 		t.Error("Expected test error to be nil, got ", testConfigErr)
