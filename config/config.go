@@ -84,7 +84,7 @@ func (c *Config) getClusterID() error {
 		return err
 	}
 	c.ClusterID = strings.TrimSpace(string(fileByte))
-	log.Infof("Detected Cluster ID: %s", c.ClusterID)
+	log.Debugf("Detected Cluster ID: %s", c.ClusterID)
 	return nil
 }
 
