@@ -42,7 +42,7 @@ type Config struct {
 	// Optional CLI Flags
 	FlagVersion bool
 	FlagVerbose bool
-	TestURL     string
+	FlagTest    bool
 	Enabled     string `json:"enabled"`
 
 	// Extra headers for all reporter{}'s
@@ -75,7 +75,7 @@ func (c *Config) setFlags(fs *flag.FlagSet) {
 	fs.StringVar(&c.DCOSClusterIDPath, "cluster-id-path", c.DCOSClusterIDPath, "Override path to DCOS anonymous ID.")
 	fs.StringVar(&c.SignalServiceConfigPath, "c", c.SignalServiceConfigPath, "Path to dcos-signal-service.conf.")
 	fs.StringVar(&c.SegmentKey, "segment-key", c.SegmentKey, "Key for segmentIO.")
-	fs.StringVar(&c.TestURL, "test-url", c.TestURL, "Override default test URL")
+	fs.BoolVar(&c.FlagTest, "test", c.FlagTest, "Dump the data sent to segment to stdout.")
 }
 
 func (c *Config) getClusterID() error {
@@ -130,6 +130,7 @@ func (c *Config) tryLoadingCert() error {
 	return nil
 }
 
+// ParseArgsReturnConfig does exactly that
 func ParseArgsReturnConfig(args []string) (Config, []error) {
 	errAry := []error{}
 	c := DefaultConfig()
