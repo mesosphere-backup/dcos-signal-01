@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"testing"
 
 	"github.com/dcos/dcos-signal/config"
@@ -144,8 +143,7 @@ func mockRouter() *mux.Router {
 }
 
 func TestExecuteTester(t *testing.T) {
-	url, _ := url.Parse(server.URL)
-	testURL := "http://" + url.Host + "/tester"
+	test := true
 
 	var (
 		mockTrack = &analytics.Track{}
@@ -153,7 +151,7 @@ func TestExecuteTester(t *testing.T) {
 			"foo": mockTrack,
 		}
 		mockConfig = config.Config{
-			TestURL: testURL,
+			FlagTest: test,
 		}
 	)
 
