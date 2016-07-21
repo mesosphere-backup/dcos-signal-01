@@ -1,11 +1,9 @@
 package signal
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"os"
 
 	log "github.com/Sirupsen/logrus"
@@ -21,7 +19,7 @@ var (
 func runner(done chan Reporter, reporters chan Reporter, c config.Config, w int) error {
 	for r := range reporters {
 		if len(r.getEndpoints()) == 0 {
-			return errors.New(fmt.Sprintf("Reporter %s has no endpoints.", r.getName()))
+			return fmt.Errorf("Reporter %s has no endpoints.", r.getName())
 		}
 		for _, endpoint := range r.getEndpoints() {
 			log.Debugf("Worker %d: Processing %s endpoint %s", w, r.getName(), endpoint)
@@ -41,25 +39,9 @@ func runner(done chan Reporter, reporters chan Reporter, c config.Config, w int)
 }
 
 func executeTester(data map[string]*analytics.Track, c config.Config) error {
-	log.Info("Executing POST to test server")
-	jsonStr, _ := json.MarshalIndent(data, "", "    ")
-
-	log.Debugf("Attmpting to POST test data to %s\n%s", c.TestURL, jsonStr)
-
-	req, err := http.NewRequest("POST", c.TestURL, bytes.NewBuffer(jsonStr))
-	if err != nil {
-		return err
-	}
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Errorf("Could not POST test data to test URL %s", c.TestURL)
-		return err
-	}
-
-	log.Infof("Test server response: %s", resp.Status)
-	return nil
+	jsonStr, err := json.MarshalIndent(data, "", "    ")
+	fmt.Printf(string(jsonStr))
+	return err
 }
 
 func executeRunner(c config.Config) error {
@@ -88,7 +70,7 @@ func executeRunner(c config.Config) error {
 			for _, err := range r.getError() {
 				log.Errorf("%s: %s", r.getName(), err)
 			}
-			if len(c.TestURL) > 0 {
+			if c.FlagTest {
 				log.Debugf("Adding test data for %s: %+v", r.getName(), r.getTrack())
 				tester[r.getName()] = r.getTrack()
 			} else if len(r.getError()) > 0 {
@@ -99,11 +81,11 @@ func executeRunner(c config.Config) error {
 				r.sendTrack(c)
 			}
 			log.Warnf("processed %d, workers %d", processed, workers)
-			processed += 1
+			processed++
 		}
 	}
 
-	if len(c.TestURL) > 0 {
+	if c.FlagTest {
 		if err := executeTester(tester, c); err != nil {
 			return err
 		}
@@ -112,6 +94,7 @@ func executeRunner(c config.Config) error {
 	return nil
 }
 
+// Start starts the signal service
 func Start() {
 	config, configErr := config.ParseArgsReturnConfig(os.Args[1:])
 	if configErr != nil {
@@ -131,8 +114,8 @@ func Start() {
 		if config.FlagVerbose {
 			log.SetLevel(log.DebugLevel)
 		}
-		if len(config.TestURL) > 0 {
-			log.SetLevel(log.DebugLevel)
+		if config.FlagTest {
+			log.SetLevel(log.ErrorLevel)
 		}
 	}
 	if err := executeRunner(config); err != nil {
