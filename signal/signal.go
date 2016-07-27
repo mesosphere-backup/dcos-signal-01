@@ -23,13 +23,13 @@ func runner(done chan Reporter, reporters chan Reporter, c config.Config, w int)
 		}
 		for _, endpoint := range r.getEndpoints() {
 			log.Debugf("Worker %d: Processing %s endpoint %s", w, r.getName(), endpoint)
-			err := PullReport(endpoint, r, c)
-			if err != nil {
+			if err := PullReport(endpoint, r, c); err != nil {
+				log.Errorf("Error setting track for %s: %s", r.getName(), err.Error())
 				r.appendError(err.Error())
 			}
 
-			err = r.setTrack(c)
-			if err != nil {
+			if err := r.setTrack(c); err != nil {
+				log.Errorf("Error setting track for %s: %s", r.getName(), err.Error())
 				r.appendError(err.Error())
 			}
 		}
