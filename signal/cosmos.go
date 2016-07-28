@@ -75,7 +75,7 @@ func (c *Cosmos) appendError(err string) {
 
 func (c *Cosmos) setTrack(config config.Config) error {
 	if c.Report == nil {
-		return fmt.Errorf("%s is report is nil, bailing out.", c.Name)
+		return fmt.Errorf("%s report is nil, bailing out.", c.Name)
 	}
 
 	log.Warnf("REPORT:\n%+v", c.Report)

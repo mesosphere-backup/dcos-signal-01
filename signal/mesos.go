@@ -84,7 +84,7 @@ func (d *Mesos) appendError(err string) {
 
 func (d *Mesos) setTrack(c config.Config) error {
 	if d.Report == nil {
-		return fmt.Errorf("%s is report is nil, bailing out.", d.Name)
+		return fmt.Errorf("%s report is nil, bailing out.", d.Name)
 	}
 
 	properties := map[string]interface{}{

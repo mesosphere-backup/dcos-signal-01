@@ -3,7 +3,6 @@ package signal
 import (
 	"bytes"
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -80,7 +79,6 @@ func PullReport(endpoint string, r Reporter, c config.Config) error {
 
 	headers := r.getHeaders()
 	for headerName, headerValue := range headers {
-		// ex. headerName = "Content-Type" and headerValue = "application/json"
 		req.Header.Add(headerName, headerValue)
 	}
 	log.Debugf("Request %s: %+v", endpoint, req)
@@ -90,7 +88,7 @@ func PullReport(endpoint string, r Reporter, c config.Config) error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return errors.New(fmt.Sprintf("Response %s %s: %s", resp.Proto, endpoint, resp.Status))
+		return fmt.Errorf("Response %s %s: %s", resp.Proto, endpoint, resp.Status)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
