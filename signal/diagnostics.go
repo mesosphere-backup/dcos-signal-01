@@ -2,6 +2,7 @@ package signal
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -98,6 +99,10 @@ func (d *Diagnostics) setTrack(c config.Config) error {
 		"clusterId":          c.ClusterID,
 		"variant":            c.DCOSVariant,
 		"provider":           c.GenProvider,
+	}
+
+	if d.Report == nil {
+		return fmt.Errorf("%s report is nil, bailing out.", d.Name)
 	}
 
 	for _, unit := range d.Report.Units {

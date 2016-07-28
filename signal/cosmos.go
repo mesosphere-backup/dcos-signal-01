@@ -2,6 +2,7 @@ package signal
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/dcos/dcos-signal/config"
 	"github.com/segmentio/analytics-go"
@@ -73,6 +74,11 @@ func (c *Cosmos) appendError(err string) {
 }
 
 func (c *Cosmos) setTrack(config config.Config) error {
+	if c.Report == nil {
+		return fmt.Errorf("%s report is nil, bailing out.", c.Name)
+	}
+
+	log.Warnf("REPORT:\n%+v", c.Report)
 	properties := map[string]interface{}{
 		"package_list":       c.Report.Packages,
 		"source":             "cluster",
