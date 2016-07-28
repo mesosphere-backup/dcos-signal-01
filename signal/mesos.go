@@ -2,6 +2,7 @@ package signal
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/dcos/dcos-signal/config"
 	"github.com/segmentio/analytics-go"
@@ -82,6 +83,10 @@ func (d *Mesos) appendError(err string) {
 }
 
 func (d *Mesos) setTrack(c config.Config) error {
+	if d.Report == nil {
+		return fmt.Errorf("%s is report is nil, bailing out.", d.Name)
+	}
+
 	properties := map[string]interface{}{
 		"source":             "cluster",
 		"customerKey":        c.CustomerKey,
