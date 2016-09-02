@@ -20,6 +20,7 @@ func TestCosmosTrack(t *testing.T) {
 	c.CustomerKey = "12345"
 	c.ClusterID = "anon"
 	c.DCOSVersion = "test_version"
+	c.GenPlatform = "test_platform"
 	c.GenProvider = "test_provider"
 	c.DCOSVariant = "test_variant"
 
@@ -60,8 +61,12 @@ func TestCosmosTrack(t *testing.T) {
 		t.Error("Expected customerKey to be 12345, got ", actualSegmentTrack.Properties["customerKey"])
 	}
 
+	if actualSegmentTrack.Properties["platform"] != "test_platform" {
+		t.Error("Expected platform 'test_platform', got ", actualSegmentTrack.Properties["platform"])
+	}
+
 	if actualSegmentTrack.Properties["provider"] != "test_provider" {
-		t.Error("Expected provder 'test_provider', got ", actualSegmentTrack.Properties["provider"])
+		t.Error("Expected provider 'test_provider', got ", actualSegmentTrack.Properties["provider"])
 	}
 
 	if actualSegmentTrack.Properties["variant"] != "test_variant" {

@@ -22,6 +22,7 @@ func testMesosTrack(t *testing.T) {
 	c.CustomerKey = "12345"
 	c.ClusterID = "anon"
 	c.DCOSVersion = "test_version"
+	c.GenPlatform = "test_platform"
 	c.GenProvider = "test_provider"
 	c.DCOSVariant = "test_variant"
 
@@ -60,6 +61,10 @@ func testMesosTrack(t *testing.T) {
 
 	if actualSegmentTrack.Properties["customerKey"] != "12345" {
 		t.Error("Expected customerKey to be 12345, got ", actualSegmentTrack.Properties["customerKey"])
+	}
+
+	if actualSegmentTrack.Properties["platform"] != "test_platform" {
+		t.Error("Expected provder 'test_platform', got ", actualSegmentTrack.Properties["platform"])
 	}
 
 	if actualSegmentTrack.Properties["provider"] != "test_provider" {
