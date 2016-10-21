@@ -93,6 +93,7 @@ func (d *Mesos) setTrack(c config.Config) error {
 		"environmentVersion": c.DCOSVersion,
 		"clusterId":          c.ClusterID,
 		"variant":            c.DCOSVariant,
+		"platform":           c.GenPlatform,
 		"provider":           c.GenProvider,
 		"frameworks":         d.Report.Frameworks,
 		"cpu_total":          d.Report.CPUTotal,

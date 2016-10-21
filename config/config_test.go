@@ -93,7 +93,8 @@ func TestGetExternalConfig(t *testing.T) {
 	noEntConfig := []byte(`
 {
 "customer_key": "",
-"gen_provider": "onprem"	
+"gen_platform": "vagrant-virtualbox",
+"gen_provider": "onprem"
 }`)
 	noEntFile, _ := ioutil.TempFile(os.TempDir(), "")
 
@@ -109,6 +110,10 @@ func TestGetExternalConfig(t *testing.T) {
 
 	if noEntC.CustomerKey != "" {
 		t.Error("Expected customer ID to be empty, got ", noEntC.CustomerKey)
+	}
+
+	if noEntC.GenPlatform != "vagrant-virtualbox" {
+		t.Error("Expected vagrant-virtualbox, got ", noEntC.GenPlatform)
 	}
 
 	if noEntC.GenProvider != "onprem" {

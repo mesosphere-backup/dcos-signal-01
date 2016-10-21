@@ -98,6 +98,7 @@ func (d *Diagnostics) setTrack(c config.Config) error {
 		"environmentVersion": c.DCOSVersion,
 		"clusterId":          c.ClusterID,
 		"variant":            c.DCOSVariant,
+		"platform":           c.GenPlatform,
 		"provider":           c.GenProvider,
 	}
 

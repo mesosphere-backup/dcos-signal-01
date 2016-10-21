@@ -32,6 +32,7 @@ type Config struct {
 	// DCOS-Specific Data
 	DCOSVersion       string
 	DCOSVariant       string
+	GenPlatform       string `json:"gen_platform"`
 	GenProvider       string `json:"gen_provider"`
 	DCOSClusterIDPath string
 
@@ -151,6 +152,7 @@ func ParseArgsReturnConfig(args []string) (Config, []error) {
 
 	// Get standard and extra JSON config off disk
 	if err := c.getExternalConfig(); err != nil {
+		c.GenPlatform = err.Error()
 		c.GenProvider = err.Error()
 		c.CustomerKey = err.Error()
 		errAry = append(errAry, err)
