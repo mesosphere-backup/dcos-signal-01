@@ -41,16 +41,16 @@ type Config struct {
 	ExtraJSONConfigPath     string
 
 	// Optional CLI Flags
-	FlagVersion bool
-	FlagVerbose bool
-	FlagTest    bool
-	Enabled     string `json:"enabled"`
+	FlagVersion    bool
+	FlagVerbose    bool
+	FlagTest       bool
+	FlagEnterprise bool
+
+	// Service enabled?
+	Enabled string `json:"enabled"`
 
 	// Extra headers for all reporter{}'s
 	ExtraHeaders map[string]string
-
-	// DC/OS Variant: enterprise or open
-	Variant string
 }
 
 var (
@@ -77,6 +77,7 @@ func (c *Config) setFlags(fs *flag.FlagSet) {
 	fs.StringVar(&c.SignalServiceConfigPath, "c", c.SignalServiceConfigPath, "Path to dcos-signal-service.conf.")
 	fs.StringVar(&c.SegmentKey, "segment-key", c.SegmentKey, "Key for segmentIO.")
 	fs.BoolVar(&c.FlagTest, "test", c.FlagTest, "Dump the data sent to segment to stdout.")
+	fs.BoolVar(&c.FlagEnterprise, "enterprise", c.FlagEnterprise, "Is this DC/OS enterprise?")
 }
 
 func (c *Config) getClusterID() error {
@@ -162,6 +163,10 @@ func ParseArgsReturnConfig(args []string) (Config, []error) {
 	// path passed in config
 	if err := c.tryLoadingCert(); err != nil {
 		errAry = append(errAry, err)
+	}
+
+	if c.FlagEnterprise {
+		c.DCOSVariant = "enterprise"
 	}
 
 	if len(errAry) > 0 {
