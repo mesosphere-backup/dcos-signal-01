@@ -51,7 +51,7 @@ func PullReport(endpoint string, r Reporter, c config.Config) error {
 
 	log.Debugf("Pulling from %s", endpoint)
 	client := http.Client{
-		Timeout: time.Duration(5 * time.Second),
+		Timeout: time.Duration(15 * time.Second),
 	}
 
 	if url.Scheme == "https" {
