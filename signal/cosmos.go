@@ -3,19 +3,40 @@ package signal
 import (
 	"encoding/json"
 	"fmt"
-
-	"github.com/dcos/dcos-signal/config"
-	"github.com/segmentio/analytics-go"
+	"strings"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/dcos/dcos-signal/config"
+	"github.com/segmentio/analytics-go"
 )
 
 type CosmosPackages struct {
-	AppID string `json:"appId"`
+	AppID              string `json:"appId"`
+	PackageInformation struct {
+		PackageDefinition struct {
+			Name             string `json:"name"`
+			PackagingVersion string `json:"packagingVersion"`
+		} `json:"packageDefinition"`
+	} `json:"packageInformation"`
+}
+
+// String implements Stringer interface to represent the package in human readable format.
+func (c CosmosPackages) String() string {
+	return fmt.Sprintf("%s %s", c.PackageInformation.PackageDefinition.Name,
+		c.PackageInformation.PackageDefinition.PackagingVersion)
 }
 
 type CosmosReport struct {
 	Packages []CosmosPackages `json:"packages"`
+}
+
+// String implements Stringer interface to print installed packages in human readable format.
+func (c CosmosReport) String() string {
+	var pkgs []string
+	for _, pkg := range c.Packages {
+		pkgs = append(pkgs, pkg.String())
+	}
+	return strings.Join(pkgs, ", ")
 }
 
 // Cosmos implements a Reporter for the cosmos service
@@ -78,7 +99,7 @@ func (c *Cosmos) setTrack(config config.Config) error {
 		return fmt.Errorf("%s report is nil, bailing out.", c.Name)
 	}
 
-	log.Warnf("REPORT:\n%+v", c.Report)
+	log.Infof("Installed cosmos packages: %s", c.Report)
 	properties := map[string]interface{}{
 		"package_list":       c.Report.Packages,
 		"source":             "cluster",

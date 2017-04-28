@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/dcos/dcos-signal/config"
+	"encoding/json"
 )
 
 var (
@@ -83,5 +84,39 @@ func TestCosmosTrack(t *testing.T) {
 
 	if actualSegmentTrack.Properties["package_list"].([]CosmosPackages)[0].AppID != "fooPackage" {
 		t.Error("Expected 'fooPackage', got", actualSegmentTrack.Properties["package_list"].([]CosmosPackages)[0].AppID)
+	}
+}
+
+func TestCosmosStringer(t *testing.T) {
+	report := CosmosReport{}
+	response := `
+	{
+	  "packages": [
+	    {
+	      "packageInformation": {
+	        "packageDefinition": {
+	          "name": "hello-world",
+	          "packagingVersion": "0.0.1"
+	        }
+	      }
+	    },
+	    {
+	      "packageInformation": {
+	        "packageDefinition": {
+	          "name": "test-pkg",
+	          "packagingVersion": "0.0.2"
+	        }
+	      }
+	    }
+	  ]
+	}`
+
+	if err := json.Unmarshal([]byte(response), &report); err != nil {
+		t.Fatal(err)
+	}
+
+	expectedLine := "hello-world 0.0.1, test-pkg 0.0.2"
+	if report.String() != expectedLine {
+		t.Fatalf("Expect %s. Got %s", expectedLine, report)
 	}
 }
