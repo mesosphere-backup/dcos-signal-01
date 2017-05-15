@@ -14,8 +14,8 @@ type CosmosPackages struct {
 	AppID              string `json:"appId"`
 	PackageInformation struct {
 		PackageDefinition struct {
-			Name             string `json:"name"`
-			PackagingVersion string `json:"packagingVersion"`
+			Name    string `json:"name"`
+			Version string `json:"version"`
 		} `json:"packageDefinition"`
 	} `json:"packageInformation"`
 }
@@ -23,7 +23,7 @@ type CosmosPackages struct {
 // String implements Stringer interface to represent the package in human readable format.
 func (c CosmosPackages) String() string {
 	return fmt.Sprintf("%s %s", c.PackageInformation.PackageDefinition.Name,
-		c.PackageInformation.PackageDefinition.PackagingVersion)
+		c.PackageInformation.PackageDefinition.Version)
 }
 
 type CosmosReport struct {

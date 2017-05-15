@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/dcos/dcos-signal/config"
 	"encoding/json"
+	"github.com/dcos/dcos-signal/config"
 )
 
 var (
@@ -96,7 +96,7 @@ func TestCosmosStringer(t *testing.T) {
 	      "packageInformation": {
 	        "packageDefinition": {
 	          "name": "hello-world",
-	          "packagingVersion": "0.0.1"
+	          "version": "0.0.1"
 	        }
 	      }
 	    },
@@ -104,7 +104,7 @@ func TestCosmosStringer(t *testing.T) {
 	      "packageInformation": {
 	        "packageDefinition": {
 	          "name": "test-pkg",
-	          "packagingVersion": "0.0.2"
+	          "version": "0.0.2"
 	        }
 	      }
 	    }
