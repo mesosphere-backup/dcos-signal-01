@@ -109,9 +109,15 @@ func (d *Diagnostics) setTrack(c config.Config) error {
 	for _, unit := range d.Report.Units {
 		totalUnits := len(unit.Nodes)
 		totalUnhealthyUnits := 0
+
 		for _, node := range unit.Nodes {
-			if node.Health != 0 {
-				log.Debugf("UNHEALTHY NODE: %s", node.IP)
+			errorLog, ok := node.Output[unit.UnitName]
+			if !ok {
+				log.Errorf("unit %s is not in node output", unit.UnitName)
+			}
+
+			if errorLog != "" {
+				log.Debugf("UNHEALTHY NODE: %s, journald log: %s", node.IP, errorLog)
 				totalUnhealthyUnits++
 			} else {
 				for _, nodeUnit := range node.Units {
