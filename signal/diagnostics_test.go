@@ -96,7 +96,7 @@ func TestDiagnosticsTrack(t *testing.T) {
 		t.Error("Expected key health-unit-foo-unit-2-unhealthy to exist, got ", ok)
 	}
 
-	if val, _ := actualSegmentTrack.Properties["health-unit-foo-unit-2-unhealthy"]; val != 1 {
+	if val, _ := actualSegmentTrack.Properties["health-unit-foo-unit-2-unhealthy"]; val != 2 {
 		t.Error("Expected key health-unit-foo-unit-2-unhealthy to be 1, got ", val)
 	}
 
@@ -111,7 +111,7 @@ func TestDiagnosticsTrack(t *testing.T) {
 		t.Error("Expected key health-unit-foo-unit-1-unhealthy to exist, got ", ok)
 	}
 
-	if val, _ := actualSegmentTrack.Properties["health-unit-foo-unit-1-unhealthy"]; val != 1 {
+	if val, _ := actualSegmentTrack.Properties["health-unit-foo-unit-1-unhealthy"]; val != 0 {
 		t.Error("Expected key health-unit-foo-unit-1-unhealthy to be 1, got ", val)
 	}
 }

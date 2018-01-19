@@ -19,7 +19,7 @@ var mockNodes = []*Node{
 		Host:   "foo.master",
 		Health: 0,
 		Output: map[string]string{
-			"foo-unit.2": "",
+			"foo-unit.2": "Something is broken!!",
 			"foo-unit.1": "",
 		},
 		Units: nil,
@@ -41,7 +41,7 @@ var mockUnits = map[string]*Unit{
 	"10.0.0.1": {
 		UnitName: "foo-unit.1",
 		Nodes:    mockNodes,
-		Health:   1,
+		Health:   0,
 		Title:    "Foo Test 1",
 	},
 	"10.0.0.2": {
