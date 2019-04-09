@@ -1,3 +1,5 @@
+// +build unit
+
 package signal
 
 import (
@@ -5,6 +7,7 @@ import (
 	"testing"
 
 	"encoding/json"
+
 	"github.com/dcos/dcos-signal/config"
 )
 

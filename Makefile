@@ -18,27 +18,35 @@ EXTRA?=
 
 all: test install
 
-test:
-	@echo "+$@"
-	go test $(FILES) -v -cover
+test: unit integration
 
-build: 
+build:
 	@echo "+$@"
 	go build -v -o signal_'$(VERSION)' -ldflags '$(LDFLAGS)' dcos_signal.go
 
-linux: 
+linux:
 	@echo "+$@"
-	GOOS=linux go build -v -o signal_'$(VERSION)'_linux -ldflags '$(LDFLAGS)' dcos_signal.go 
+	GOOS=linux go build -v -o signal_'$(VERSION)'_linux -ldflags '$(LDFLAGS)' dcos_signal.go
 
-
-build-linux: 
+build-linux:
 	@echo "+$@"
 	GOOS=linux go build -v -ldflags '$(LDFLAGS)' $(FILES)
-
 
 install:
 	@echo "+$@"
 	go install -v -ldflags '$(LDFLAGS)' $(FILES)
+
+integration:
+	@cd scripts/mocklicensing && \
+		make build && \
+		make start && \
+		GOCACHE=off go test -v -tags=integration $(FILES)
+	@cd scripts/mocklicensing && \
+		make build && \
+		make stop
+
+unit:
+	@go test -v -cover -tags=unit $(FILES)
 
 run:
 	@echo "+$@"
