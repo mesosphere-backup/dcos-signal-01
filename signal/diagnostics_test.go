@@ -23,6 +23,7 @@ func TestDiagnosticsTrack(t *testing.T) {
 	c := config.DefaultConfig()
 	c.CustomerKey = "12345"
 	c.ClusterID = "anon"
+	c.LicenseID = "test_license"
 	c.DCOSVersion = "test_version"
 	c.GenPlatform = "test_platform"
 	c.GenProvider = "test_provider"
@@ -42,8 +43,8 @@ func TestDiagnosticsTrack(t *testing.T) {
 		t.Error("Expected no errors running diagnostics.SetTrack(), got ", setupErr)
 	}
 
-	if len(actualSegmentTrack.Properties) != 11 {
-		t.Error("Expected 11 properties, got ", len(actualSegmentTrack.Properties))
+	if len(actualSegmentTrack.Properties) != 12 {
+		t.Error("Expected 12 properties, got ", len(actualSegmentTrack.Properties))
 	}
 
 	if actualSegmentTrack.Event != "health" {
@@ -60,6 +61,10 @@ func TestDiagnosticsTrack(t *testing.T) {
 
 	if actualSegmentTrack.Properties["clusterId"] != "anon" {
 		t.Error("Expected clusterId to be anon, got ", actualSegmentTrack.Properties["clusterId"])
+	}
+
+	if actualSegmentTrack.Properties["licenseId"] != "test_license" {
+		t.Error("Expected licenseId to be 'test_license', got ", actualSegmentTrack.Properties["licenseId"])
 	}
 
 	if actualSegmentTrack.Properties["source"] != "cluster" {
