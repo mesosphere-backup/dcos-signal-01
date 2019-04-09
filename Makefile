@@ -22,19 +22,21 @@ test: unit integration
 
 build:
 	@echo "+$@"
-	go build -v -o signal_'$(VERSION)' -ldflags '$(LDFLAGS)' dcos_signal.go
+	GO111MODULE=on go build -mod=vendor -v -o signal_'$(VERSION)' -ldflags '$(LDFLAGS)' dcos_signal.go
 
 linux:
 	@echo "+$@"
-	GOOS=linux go build -v -o signal_'$(VERSION)'_linux -ldflags '$(LDFLAGS)' dcos_signal.go
+	GO111MODULE=on GOOS=linux go build -mod=vendor -v -o signal_'$(VERSION)'_linux -ldflags '$(LDFLAGS)' dcos_signal.go
+
+>>>>>>> master
 
 build-linux:
 	@echo "+$@"
-	GOOS=linux go build -v -ldflags '$(LDFLAGS)' $(FILES)
+	GO111MODULE=on GOOS=linux go build -mod=vendor -v -ldflags '$(LDFLAGS)' $(FILES)
 
 install:
 	@echo "+$@"
-	go install -v -ldflags '$(LDFLAGS)' $(FILES)
+	GO111MODULE=on go install -mod=vendor -v -ldflags '$(LDFLAGS)' $(FILES)
 
 integration:
 	@cd scripts/mocklicensing && \
@@ -50,4 +52,4 @@ unit:
 
 run:
 	@echo "+$@"
-	go run dcos_signal.go -v -anonymous-id-path $(ANON_PATH) -report-host $(HOST) -report-port 1050 -c $(CONFIG) $(EXTRA)
+	GO111MODULE=on go run -mod=vendor  dcos_signal.go -v -anonymous-id-path $(ANON_PATH) -report-host $(HOST) -report-port 1050 -c $(CONFIG) $(EXTRA)
