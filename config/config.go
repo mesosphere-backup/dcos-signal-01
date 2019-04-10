@@ -90,8 +90,8 @@ func (c *Config) setFlags(fs *flag.FlagSet) {
 func (c *Config) getLicenseID() error {
 	// Build an http client that connects via unix domain socket
 	httpc := http.Client{
+		Timeout: 15 * time.Second,
 		Transport: &http.Transport{
-			Timeout: 15 * time.Second,
 			DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
 				dialer := net.Dialer{}
 				return dialer.DialContext(ctx, "unix", c.LicensingSocket)
