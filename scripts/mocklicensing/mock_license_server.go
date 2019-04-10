@@ -51,7 +51,6 @@ func (l Licenses) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 const SOCK = "/tmp/dcos-licensing.socket"
 
 func main() {
-
 	expired := License{
 		ID:            "expired_license",
 		Version:       "1.11",

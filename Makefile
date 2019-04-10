@@ -10,7 +10,7 @@ LDFLAGS := -X github.com/dcos/dcos-signal/signal.VERSION=$(VERSION) -X github.co
 
 FILES := $(shell go list ./... | grep -v vendor)
 
-# Testing Local Run 
+# Testing Local Run
 ANON_PATH?=/tmp/anon-id.json
 HOST?=localhost
 CONFIG?=/tmp/signal-config.json
@@ -28,8 +28,6 @@ linux:
 	@echo "+$@"
 	GO111MODULE=on GOOS=linux go build -mod=vendor -v -o signal_'$(VERSION)'_linux -ldflags '$(LDFLAGS)' dcos_signal.go
 
->>>>>>> master
-
 build-linux:
 	@echo "+$@"
 	GO111MODULE=on GOOS=linux go build -mod=vendor -v -ldflags '$(LDFLAGS)' $(FILES)
@@ -39,16 +37,15 @@ install:
 	GO111MODULE=on go install -mod=vendor -v -ldflags '$(LDFLAGS)' $(FILES)
 
 integration:
-	@cd scripts/mocklicensing && \
+	@-cd scripts/mocklicensing && \
 		make build && \
 		make start && \
-		GOCACHE=off go test -v -tags=integration $(FILES)
+		go test -v -count=1 -tags=integration $(FILES)
 	@cd scripts/mocklicensing && \
-		make build && \
-		make stop
+		make stop && make clean
 
 unit:
-	@go test -v -cover -tags=unit $(FILES)
+	@GO111MODULE=on go test -v -cover -mod=vendor -tags=unit $(FILES)
 
 run:
 	@echo "+$@"
