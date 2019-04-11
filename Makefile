@@ -10,7 +10,7 @@ LDFLAGS := -X github.com/dcos/dcos-signal/signal.VERSION=$(VERSION) -X github.co
 
 FILES := $(shell go list ./... | grep -v vendor)
 
-# Testing Local Run 
+# Testing Local Run
 ANON_PATH?=/tmp/anon-id.json
 HOST?=localhost
 CONFIG?=/tmp/signal-config.json
@@ -18,27 +18,34 @@ EXTRA?=
 
 all: test install
 
-test:
-	@echo "+$@"
-	go test $(FILES) -v -cover
+test: unit integration
 
-build: 
+build:
 	@echo "+$@"
 	GO111MODULE=on go build -mod=vendor -v -o signal_'$(VERSION)' -ldflags '$(LDFLAGS)' dcos_signal.go
 
-linux: 
+linux:
 	@echo "+$@"
 	GO111MODULE=on GOOS=linux go build -mod=vendor -v -o signal_'$(VERSION)'_linux -ldflags '$(LDFLAGS)' dcos_signal.go
 
-
-build-linux: 
+build-linux:
 	@echo "+$@"
 	GO111MODULE=on GOOS=linux go build -mod=vendor -v -ldflags '$(LDFLAGS)' $(FILES)
-
 
 install:
 	@echo "+$@"
 	GO111MODULE=on go install -mod=vendor -v -ldflags '$(LDFLAGS)' $(FILES)
+
+integration:
+	@-cd scripts/mocklicensing && \
+		make build && \
+		make start && \
+		go test -v -count=1 -tags=integration $(FILES)
+	@cd scripts/mocklicensing && \
+		make stop && make clean
+
+unit:
+	@GO111MODULE=on go test -v -cover -mod=vendor -tags=unit $(FILES)
 
 run:
 	@echo "+$@"

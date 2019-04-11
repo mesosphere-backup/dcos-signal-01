@@ -106,6 +106,7 @@ func (c *Cosmos) setTrack(config config.Config) error {
 		"customerKey":        config.CustomerKey,
 		"environmentVersion": config.DCOSVersion,
 		"clusterId":          config.ClusterID,
+		"licenseId":          config.LicenseID,
 		"variant":            config.DCOSVariant,
 		"platform":           config.GenPlatform,
 		"provider":           config.GenProvider,

@@ -1,13 +1,17 @@
 package config
 
 import (
+	"context"
 	"crypto/x509"
 	"encoding/json"
 	"errors"
 	"flag"
 	"io/ioutil"
+	"net"
+	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 )
@@ -28,6 +32,7 @@ type Config struct {
 	SegmentEvent string
 	CustomerKey  string `json:"customer_key"`
 	ClusterID    string `json:"cluster_id"`
+	LicenseID    string `json:"license_id"`
 
 	// DCOS-Specific Data
 	DCOSVersion       string
@@ -37,6 +42,7 @@ type Config struct {
 	DCOSClusterIDPath string
 
 	// External Config Path Generated at Install Time
+	LicensingSocket         string
 	SignalServiceConfigPath string
 	ExtraJSONConfigPath     string
 
@@ -59,6 +65,7 @@ var (
 		DCOSVersion:             os.Getenv("DCOS_VERSION"),
 		DCOSClusterIDPath:       "/var/lib/dcos/cluster-id",
 		DCOSVariant:             "open",
+		LicensingSocket:         "/tmp/dcos-licensing.socket",
 		SignalServiceConfigPath: "/opt/mesosphere/etc/dcos-signal-config.json",
 		ExtraJSONConfigPath:     "/opt/mesosphere/etc/dcos-signal-extra.json",
 		ExtraHeaders:            make(map[string]string),
@@ -74,9 +81,64 @@ func (c *Config) setFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&c.FlagVerbose, "v", c.FlagVerbose, "Verbose logging mode.")
 	fs.BoolVar(&c.FlagVersion, "version", c.FlagVersion, "Print version and exit.")
 	fs.StringVar(&c.DCOSClusterIDPath, "cluster-id-path", c.DCOSClusterIDPath, "Override path to DCOS anonymous ID.")
+	fs.StringVar(&c.LicensingSocket, "licensing-socket", c.LicensingSocket, "Path to licensing socket.")
 	fs.StringVar(&c.SignalServiceConfigPath, "c", c.SignalServiceConfigPath, "Path to dcos-signal-service.conf.")
 	fs.StringVar(&c.SegmentKey, "segment-key", c.SegmentKey, "Key for segmentIO.")
 	fs.BoolVar(&c.FlagTest, "test", c.FlagTest, "Dump the data sent to segment to stdout.")
+}
+
+func (c *Config) getLicenseID() error {
+	// Build an http client that connects via unix domain socket
+	httpc := http.Client{
+		Timeout: 15 * time.Second,
+		Transport: &http.Transport{
+			DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
+				dialer := net.Dialer{}
+				return dialer.DialContext(ctx, "unix", c.LicensingSocket)
+			},
+		},
+	}
+
+	// Call the /licenses endpoint on the dcos-licensing service
+	resp, err := httpc.Get("http://unix/licenses")
+	if err != nil {
+		return err
+	}
+
+	// Response from /licenses endpoint of dcos-licensing service
+	licenses := []struct {
+		ID            string `json:"id"`
+		Version       string `json:"version"`
+		DecryptionKey string `json:"decryption_key"`
+		LicenseTerms  struct {
+			NodeCapacity   int       `json:"node_capacity"`
+			StartTimestamp time.Time `json:"start_timestamp"`
+			EndTimestamp   time.Time `json:"end_timestamp"`
+		} `json:"license_terms"`
+	}{}
+
+	if err = json.NewDecoder(resp.Body).Decode(&licenses); err != nil {
+		return err
+	}
+
+	// Loop through licenses and find the one with the latest expirary
+	// date. That is probably the valid license. All we care about is
+	// the license_id, which is probably the same for all licenses on
+	// the cluster. But this is an extra precaution to try to determine
+	// which of the licenses is valid.
+	if len(licenses) >= 1 {
+		id := licenses[0].ID
+		end := licenses[0].LicenseTerms.EndTimestamp
+		for _, l := range licenses {
+			if l.LicenseTerms.EndTimestamp.After(end) {
+				id = l.ID
+				end = l.LicenseTerms.EndTimestamp
+			}
+		}
+		c.LicenseID = id
+	}
+
+	return nil
 }
 
 func (c *Config) getClusterID() error {

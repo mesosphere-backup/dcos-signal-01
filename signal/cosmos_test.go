@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"encoding/json"
+
 	"github.com/dcos/dcos-signal/config"
 )
 
@@ -20,6 +21,7 @@ func TestCosmosTrack(t *testing.T) {
 	c := config.DefaultConfig()
 	c.CustomerKey = "12345"
 	c.ClusterID = "anon"
+	c.LicenseID = "test_license"
 	c.DCOSVersion = "test_version"
 	c.GenPlatform = "test_platform"
 	c.GenProvider = "test_provider"
@@ -60,6 +62,10 @@ func TestCosmosTrack(t *testing.T) {
 
 	if actualSegmentTrack.Properties["customerKey"] != "12345" {
 		t.Error("Expected customerKey to be 12345, got ", actualSegmentTrack.Properties["customerKey"])
+	}
+
+	if actualSegmentTrack.Properties["licenseId"] != "test_license" {
+		t.Error("Expected licenseId to be 'test_license', got ", actualSegmentTrack.Properties["licenseId"])
 	}
 
 	if actualSegmentTrack.Properties["platform"] != "test_platform" {
