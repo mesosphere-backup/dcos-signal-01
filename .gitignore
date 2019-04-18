@@ -1,4 +1,4 @@
 dcos-signal
-signal_*
+./signal_*
 config/enterprise.go*
 scripts/mocklicensing/mocklicensing

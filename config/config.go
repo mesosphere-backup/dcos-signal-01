@@ -205,6 +205,11 @@ func ParseArgsReturnConfig(args []string) (Config, []error) {
 		errAry = append(errAry, err)
 	}
 
+	// Not all clusters will have a license, including open source clusters.
+	if err := c.getLicenseID(); err != nil {
+		log.Errorf("Error getting LicenseID. Got error: %v", err)
+	}
+
 	// Get the cluster-id generate by ZK consensus
 	if err := c.getClusterID(); err != nil {
 		// If cluster-id is not found signal service should fail.

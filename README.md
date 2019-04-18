@@ -1,7 +1,7 @@
 # DCOS Signal Service [![Build Status](https://jenkins.mesosphere.com/service/jenkins/buildStatus/icon?job=dcos-cluster-ops/public-dcos-signal-service-master)](https://jenkins.mesosphere.com/service/jenkins/job/dcos-cluster-ops/job/public-dcos-signal-service-master/)
 The signal service is a passive data forwarding service for telemetry and analytics gathering. The signal service acts as a middleware which runs GET requests to 3DT, Mesos, and Cosmos on masters on a systemd timer.   
 
-## SegmentIO Library Used 
+## SegmentIO Library Used
 [SegmentIO](https://segment.com/docs/libraries/go/)
 
 ## Build
@@ -9,23 +9,31 @@ The signal service is a passive data forwarding service for telemetry and analyt
 make build
 ```
 
-## Run
-You can run an example with the ```run``` script:
-
-```
-dcos-signal
-```
-
-This will query a running 3DT environment and post the results to segmentIO.
-
 ## Test
-Unittest:
+
+#### Unit Tests:
+
+```
+make unit
+```
+
+#### Integration Tests:
+
+NOTE: Some integration tests require the `SEGMENT_WRITE_KEY` to be set in order to integrate with Segment. The `dcos-dev` segment write key can be found [here](https://mesosphere.onelogin.com/notes/71322). With the key set, you should be able to view new "mesos_integration_test" events [here](https://app.segment.com/mesosphere/sources/dcos-dev/debugger) in Segment.
+
+For access to segment.com, please contact Christopher Gutierrez on the analytics team.
+
+```
+make integration
+```
+
+#### All Tests
 
 ```
 make test
 ```
 
-Integration test locally:
+#### Local End-to-End Tests:
 
 ```
 netcat -lk 4444 &
