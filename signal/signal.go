@@ -40,7 +40,7 @@ func runner(done chan Reporter, reporters chan Reporter, c config.Config, w int)
 
 func executeTester(data map[string]*analytics.Track, c config.Config) error {
 	jsonStr, err := json.MarshalIndent(data, "", "    ")
-	fmt.Printf(string(jsonStr))
+	fmt.Print(string(jsonStr))
 	return err
 }
 
@@ -58,31 +58,31 @@ func executeRunner(c config.Config) error {
 	workers := len(reporters)
 	for w := 1; w <= workers; w++ {
 		log.Debugf("Deploying Worker %d", w)
+		// `runner` probably shouldn't be returning an error but should send that to the reporters
+		// channel. However that's a large change so we ignore this check here
+		// nolint: errcheck
 		go runner(done, reporters, c, w)
 	}
 
 	tester := make(map[string]*analytics.Track)
 
 	processed := 1
-	for processed <= workers {
-		select {
-		case r := <-done:
+	for r := range done {
+		for _, err := range r.getError() {
+			log.Errorf("%s: %s", r.getName(), err)
+		}
+		if c.FlagTest {
+			log.Debugf("Adding test data for %s: %+v", r.getName(), r.getTrack())
+			tester[r.getName()] = r.getTrack()
+		} else if len(r.getError()) > 0 {
 			for _, err := range r.getError() {
 				log.Errorf("%s: %s", r.getName(), err)
 			}
-			if c.FlagTest {
-				log.Debugf("Adding test data for %s: %+v", r.getName(), r.getTrack())
-				tester[r.getName()] = r.getTrack()
-			} else if len(r.getError()) > 0 {
-				for _, err := range r.getError() {
-					log.Errorf("%s: %s", r.getName(), err)
-				}
-			} else {
-				r.sendTrack(c)
-			}
-			log.Warnf("processed %d, workers %d", processed, workers)
-			processed++
+		} else {
+			_ = r.sendTrack(c)
 		}
+		log.Warnf("processed %d, workers %d", processed, workers)
+		processed++
 	}
 
 	if c.FlagTest {

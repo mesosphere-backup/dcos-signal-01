@@ -37,7 +37,7 @@ function _unittest_with_coverage {
 
 # Main.
 function main {
-    # _lint
+    _lint
     _unittest_with_coverage
 }
 
