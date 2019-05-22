@@ -1,52 +1,62 @@
-VERSION := $(shell git describe --tags)
-REVISION := $(shell git rev-parse --short HEAD)
+DEFAULT_TARGET: build
 
-# enterprise or open
-VARIANT?=open
+VERSION := 0.4.0
+COMMIT := $(shell git rev-parse --short HEAD)
+LDFLAGS := -X github.com/dcos/dcos-signal/config.Version=$(VERSION) -X github.com/dcos/dcos-signal/config.Commit=$(COMMIT)
 
-BINARY_NAME := dcos-signal
+CURRENT_DIR=$(shell pwd)
+BUILD_DIR=build
+PKG_DIR=/dcos-signal
+BINARY_NAME=dcos-signal
+IMAGE_NAME=dcos-signal-dev
+SRCS := $(shell find . -type f -name '*.go' -not -path './vendor/*')
 
-LDFLAGS := -X github.com/dcos/dcos-signal/signal.VERSION=$(VERSION) -X github.com/dcos/dcos-signal/signal.REVISION=$(REVISION) -X github.com/dcos/dcos-signal/config.VARIANT=$(VARIANT)
+.PHONY: docker
+docker:
+ifndef NO_DOCKER
+	docker build -t $(IMAGE_NAME) .
+endif
 
-FILES := $(shell go list ./... | grep -v vendor)
+$(BUILD_DIR)/$(BINARY_NAME): $(SRCS)
+	mkdir -p $(BUILD_DIR)
+	$(call inDocker,go build -mod=vendor -v -ldflags '$(LDFLAGS)' -o $(BUILD_DIR)/$(BINARY_NAME))
 
-# Testing Local Run
-ANON_PATH?=/tmp/anon-id.json
-HOST?=localhost
-CONFIG?=/tmp/signal-config.json
-EXTRA?=
+.PHONY: build
+build: docker $(BUILD_DIR)/$(BINARY_NAME)
 
-all: test install
-
-test: unit integration
-
-build:
-	@echo "+$@"
-	GO111MODULE=on go build -mod=vendor -v -o signal_'$(VERSION)' -ldflags '$(LDFLAGS)' dcos_signal.go
-
-linux:
-	@echo "+$@"
-	GO111MODULE=on GOOS=linux go build -mod=vendor -v -o signal_'$(VERSION)'_linux -ldflags '$(LDFLAGS)' dcos_signal.go
-
-build-linux:
-	@echo "+$@"
-	GO111MODULE=on GOOS=linux go build -mod=vendor -v -ldflags '$(LDFLAGS)' $(FILES)
-
+# install does not run in a docker container to build for the correct OS
+.PHONY: install
 install:
-	@echo "+$@"
-	GO111MODULE=on go install -mod=vendor -v -ldflags '$(LDFLAGS)' $(FILES)
+	go install -mod=vendor -v -ldflags '$(LDFLAGS)'
 
+.PHONY: test
+test: docker
+	$(call inDocker,bash -x -c './scripts/test.sh')
+
+.PHONY: integration
 integration:
-	@-cd scripts/mocklicensing && \
-		make build && \
-		make start && \
-		go test -v -count=1 -tags=integration $(FILES)
-	@cd scripts/mocklicensing && \
-		make stop && make clean
+	$(call inDocker,bash -x -c './scripts/integration.sh')
 
-unit:
-	@GO111MODULE=on go test -v -cover -mod=vendor -tags=unit $(FILES)
+.PHONY: publish
+publish:
+	@echo "This project doesn't have any artifacts to be published"
 
-run:
-	@echo "+$@"
-	GO111MODULE=on go run -mod=vendor  dcos_signal.go -v -anonymous-id-path $(ANON_PATH) -report-host $(HOST) -report-port 1050 -c $(CONFIG) $(EXTRA)
+.PHONY: clean
+clean:
+	rm -rf ./$(BUILD_DIR)
+
+ifdef NO_DOCKER
+  define inDocker
+    $1
+  endef
+else
+  define inDocker
+    docker run \
+      $(shell test -t 0 && echo "-t -i" || true) \
+      -v $(CURRENT_DIR):$(PKG_DIR) \
+      -w $(PKG_DIR) \
+      --rm \
+      $(IMAGE_NAME) \
+      $1
+  endef
+endif

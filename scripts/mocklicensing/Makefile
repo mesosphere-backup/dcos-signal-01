@@ -1,7 +1,7 @@
 PIDFILE = .serve-license.pid
 BINARY  = mocklicensing
 
-.PHONY: build clean start stop request
+.PHONY: build clean start stop request $(PIDFILE)
 
 build: mock_license_server.go
 	@go build -o $(BINARY) ./...
