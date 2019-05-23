@@ -58,7 +58,7 @@ func executeRunner(c config.Config) error {
 	workers := len(reporters)
 	for w := 1; w <= workers; w++ {
 		log.Debugf("Deploying Worker %d", w)
-		// `runner` probably shouldn't be returning an error but should send that to the reporters
+		// runner probably shouldn't be returning an error but should send that to the reporters
 		// channel. However that's a large change so we ignore this check here
 		// nolint: errcheck
 		go runner(done, reporters, c, w)
