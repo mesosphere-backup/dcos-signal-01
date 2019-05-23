@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script performs tests against the dcos-diagnostics project, specifically:
+# This script performs tests against the dcos-signal project, specifically:
 #
 #   * gofmt         (https://golang.org/cmd/gofmt)
 #   * goimports     (https://godoc.org/cmd/goimports)
