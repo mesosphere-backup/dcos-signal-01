@@ -19,7 +19,7 @@ var (
 func runner(done chan Reporter, reporters chan Reporter, c config.Config, w int) error {
 	for r := range reporters {
 		if len(r.getEndpoints()) == 0 {
-			return fmt.Errorf("Reporter %s has no endpoints.", r.getName())
+			return fmt.Errorf("Reporter %s has no endpoints", r.getName())
 		}
 		for _, endpoint := range r.getEndpoints() {
 			log.Debugf("Worker %d: Processing %s endpoint %s", w, r.getName(), endpoint)
@@ -50,7 +50,7 @@ func executeRunner(c config.Config) error {
 	// Get our channel of jobs (reporters)
 	reporters, err := makeReporters(c)
 	if err != nil {
-		return errors.New("Unable to get reporters.")
+		return errors.New("unable to get reporters")
 	}
 	// Make a channel to dump the built tracks to
 	done := make(chan Reporter)
