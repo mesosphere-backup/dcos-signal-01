@@ -45,7 +45,7 @@ func (l Licenses) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
+	_, _ = w.Write(js)
 }
 
 const SOCK = "/tmp/dcos-licensing.socket"
@@ -93,5 +93,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	server.Serve(unixListener)
+	err = server.Serve(unixListener)
+	if err != nil {
+		panic(err)
+	}
 }
