@@ -1,4 +1,4 @@
-# DCOS Signal Service [![Build Status](https://jenkins.mesosphere.com/service/jenkins/buildStatus/icon?job=public-dcos-cluster-ops/dcos-signal/add-standard-jenkinsfile)](https://jenkins.mesosphere.com/service/jenkins/job/public-dcos-cluster-ops/job/dcos-signal/job/add-standard-jenkinsfile/)
+# DCOS Signal Service [![Build Status](https://jenkins.mesosphere.com/service/jenkins/buildStatus/icon?job=public-dcos-cluster-ops/dcos-signal/master)](https://jenkins.mesosphere.com/service/jenkins/job/public-dcos-cluster-ops/job/dcos-signal/job/master/)
 The signal service is a passive data forwarding service for telemetry and analytics gathering. The signal service acts as a middleware which runs GET requests to 3DT, Mesos, and Cosmos on masters on a systemd timer.   
 
 ## SegmentIO Library Used
