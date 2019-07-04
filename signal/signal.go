@@ -52,7 +52,10 @@ func executeRunner(c config.Config) error {
 		return errors.New("unable to get reporters")
 	}
 
-	runner(reporters, c)
+	err = runner(reporters, c)
+	if err != nil {
+		return fmt.Errorf("Error gathering data: %s", err)
+	}
 
 	tester := make(map[string]*analytics.Track)
 
