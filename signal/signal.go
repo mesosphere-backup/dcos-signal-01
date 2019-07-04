@@ -67,7 +67,8 @@ func executeRunner(c config.Config) error {
 	tester := make(map[string]*analytics.Track)
 
 	processed := 1
-	for r := range done {
+	for processed <= workers {
+		r := <-done
 		for _, err := range r.getError() {
 			log.Errorf("%s: %s", r.getName(), err)
 		}
