@@ -1,5 +1,7 @@
 # github.com/Sirupsen/logrus v0.8.7
 github.com/Sirupsen/logrus
+# github.com/dgrijalva/jwt-go v2.7.0+incompatible
+github.com/dgrijalva/jwt-go
 # github.com/google/uuid v1.1.1
 github.com/google/uuid
 # github.com/gorilla/context v0.0.0-20150820051245-1c83b3eabd45
