@@ -4,7 +4,7 @@ import (
 	"github.com/dcos/dcos-signal/config"
 )
 
-func makeReporters(c config.Config) (chan Reporter, error) {
+func makeReporters(c config.Config) ([]Reporter, error) {
 
 	var reporters = []Reporter{
 		&Diagnostics{
@@ -34,11 +34,9 @@ func makeReporters(c config.Config) (chan Reporter, error) {
 		},
 	}
 
-	reportChan := make(chan Reporter, len(reporters))
 	for _, r := range reporters {
 		r.addHeaders(c.ExtraHeaders)
-		reportChan <- r
 	}
 
-	return reportChan, nil
+	return reporters, nil
 }
