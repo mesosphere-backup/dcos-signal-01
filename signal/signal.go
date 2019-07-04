@@ -16,13 +16,13 @@ var (
 	REVISION = "UNSET"
 )
 
-func runner(done chan Reporter, reporters chan Reporter, c config.Config, w int) error {
-	for r := range reporters {
+func runner(reporters []Reporter, c config.Config) error {
+	for _, r := range reporters {
 		if len(r.getEndpoints()) == 0 {
 			return fmt.Errorf("Reporter %s has no endpoints", r.getName())
 		}
 		for _, endpoint := range r.getEndpoints() {
-			log.Debugf("Worker %d: Processing %s endpoint %s", w, r.getName(), endpoint)
+			log.Debugf("Processing %s endpoint %s", r.getName(), endpoint)
 			if err := PullReport(endpoint, r, c); err != nil {
 				log.Errorf("Error setting track for %s: %s", r.getName(), err.Error())
 				r.appendError(err.Error())
@@ -33,7 +33,6 @@ func runner(done chan Reporter, reporters chan Reporter, c config.Config, w int)
 				r.appendError(err.Error())
 			}
 		}
-		done <- r
 	}
 	return nil
 }
@@ -52,23 +51,13 @@ func executeRunner(c config.Config) error {
 	if err != nil {
 		return errors.New("unable to get reporters")
 	}
-	// Make a channel to dump the built tracks to
-	done := make(chan Reporter)
 
-	workers := len(reporters)
-	for w := 1; w <= workers; w++ {
-		log.Debugf("Deploying Worker %d", w)
-		// runner probably shouldn't be returning an error but should send that to the reporters
-		// channel. However that's a large change so we ignore this check here
-		// nolint: errcheck
-		go runner(done, reporters, c, w)
-	}
+	runner(reporters, c)
 
 	tester := make(map[string]*analytics.Track)
 
 	processed := 1
-	for processed <= workers {
-		r := <-done
+	for _, r := range reporters {
 		for _, err := range r.getError() {
 			log.Errorf("%s: %s", r.getName(), err)
 		}
@@ -82,7 +71,7 @@ func executeRunner(c config.Config) error {
 		} else {
 			_ = r.sendTrack(c)
 		}
-		log.Warnf("processed %d, workers %d", processed, workers)
+		log.Warnf("processed %d", processed)
 		processed++
 	}
 
