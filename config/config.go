@@ -18,11 +18,11 @@ import (
 )
 
 type DCOSVariant struct {
-	name string
+	Name string
 }
 
 func (v DCOSVariant) String() string {
-	return v.name
+	return v.Name
 }
 
 func (v *DCOSVariant) Set(variant string) error {
@@ -31,7 +31,7 @@ func (v *DCOSVariant) Set(variant string) error {
 	} else if variant != "open" {
 		return fmt.Errorf("unknown variant '%s'. Only 'open' or 'enterprise' are allowed", variant)
 	}
-	v.name = variant
+	v.Name = variant
 	return nil
 }
 
