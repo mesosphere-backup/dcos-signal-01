@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -15,6 +16,24 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 )
+
+type DCOSVariant struct {
+	name string
+}
+
+func (v DCOSVariant) String() string {
+	return v.name
+}
+
+func (v *DCOSVariant) Set(variant string) error {
+	if variant == "enterprise" {
+		initEnterprise()
+	} else if variant != "open" {
+		return fmt.Errorf("unknown variant '%s'. Only 'open' or 'enterprise' are allowed", variant)
+	}
+	v.name = variant
+	return nil
+}
 
 // Config defines dcos-signal configuration
 type Config struct {
@@ -36,7 +55,7 @@ type Config struct {
 
 	// DCOS-Specific Data
 	DCOSVersion       string
-	DCOSVariant       string
+	DCOSVariant       DCOSVariant
 	GenPlatform       string `json:"gen_platform"`
 	GenProvider       string `json:"gen_provider"`
 	DCOSClusterIDPath string
@@ -54,9 +73,6 @@ type Config struct {
 
 	// Extra headers for all reporter{}'s
 	ExtraHeaders map[string]string
-
-	// DC/OS Variant: enterprise or open
-	Variant string
 }
 
 var (
@@ -64,7 +80,7 @@ var (
 		SegmentEvent:            "health",
 		DCOSVersion:             os.Getenv("DCOS_VERSION"),
 		DCOSClusterIDPath:       "/var/lib/dcos/cluster-id",
-		DCOSVariant:             "open",
+		DCOSVariant:             DCOSVariant{"open"},
 		LicensingSocket:         "/tmp/dcos-licensing.socket",
 		SignalServiceConfigPath: "/opt/mesosphere/etc/dcos-signal-config.json",
 		ExtraJSONConfigPath:     "/opt/mesosphere/etc/dcos-signal-extra.json",
@@ -85,6 +101,7 @@ func (c *Config) setFlags(fs *flag.FlagSet) {
 	fs.StringVar(&c.SignalServiceConfigPath, "c", c.SignalServiceConfigPath, "Path to dcos-signal-service.conf.")
 	fs.StringVar(&c.SegmentKey, "segment-key", c.SegmentKey, "Key for segmentIO.")
 	fs.BoolVar(&c.FlagTest, "test", c.FlagTest, "Dump the data sent to segment to stdout.")
+	fs.Var(&c.DCOSVariant, "dcos-variant", "Variant of DC/OS ('open' or 'enterprise')")
 }
 
 func (c *Config) getLicenseID() error {
