@@ -72,7 +72,9 @@ func executeRunner(c config.Config) error {
 				log.Errorf("%s: %s", r.getName(), err)
 			}
 		} else {
-			_ = r.sendTrack(c)
+			if err := r.sendTrack(c); err != nil {
+				log.Errorf("Error tracking %s: %s", r.getName(), err)
+			}
 		}
 		log.Warnf("processed %d", processed)
 		processed++
