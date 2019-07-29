@@ -88,7 +88,7 @@ func PullReport(endpoint string, r Reporter, c config.Config) error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Response %s %s: %s", resp.Proto, endpoint, resp.Status)
+		return fmt.Errorf("response %s %s: %s", resp.Proto, endpoint, resp.Status)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)

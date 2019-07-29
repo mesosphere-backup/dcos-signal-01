@@ -19,17 +19,17 @@ var (
 func runner(reporters []Reporter, c config.Config) error {
 	for _, r := range reporters {
 		if len(r.getEndpoints()) == 0 {
-			return fmt.Errorf("Reporter %s has no endpoints", r.getName())
+			return fmt.Errorf("reporter %s has no endpoints", r.getName())
 		}
 		for _, endpoint := range r.getEndpoints() {
 			log.Debugf("Processing %s endpoint %s", r.getName(), endpoint)
 			if err := PullReport(endpoint, r, c); err != nil {
-				log.Errorf("Error setting track for %s: %s", r.getName(), err.Error())
+				log.Errorf("error setting track for %s: %s", r.getName(), err.Error())
 				r.appendError(err.Error())
 			}
 
 			if err := r.setTrack(c); err != nil {
-				log.Errorf("Error setting track for %s: %s", r.getName(), err.Error())
+				log.Errorf("error setting track for %s: %s", r.getName(), err.Error())
 				r.appendError(err.Error())
 			}
 		}
@@ -54,7 +54,7 @@ func executeRunner(c config.Config) error {
 
 	err = runner(reporters, c)
 	if err != nil {
-		return fmt.Errorf("Error gathering data: %s", err)
+		return fmt.Errorf("error gathering data: %s", err)
 	}
 
 	tester := make(map[string]*analytics.Track)
@@ -73,7 +73,7 @@ func executeRunner(c config.Config) error {
 			}
 		} else {
 			if err := r.sendTrack(c); err != nil {
-				log.Errorf("Error tracking %s: %s", r.getName(), err)
+				log.Errorf("error tracking %s: %s", r.getName(), err)
 			}
 		}
 		log.Warnf("processed %d", processed)

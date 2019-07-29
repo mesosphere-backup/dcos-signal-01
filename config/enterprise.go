@@ -88,7 +88,7 @@ func generateJWTToken() (string, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("Failed to auth with Bouncer,  status code: %d", resp.StatusCode)
+		return "", fmt.Errorf("failed to auth with Bouncer,  status code: %d", resp.StatusCode)
 	}
 
 	var authResp struct {
