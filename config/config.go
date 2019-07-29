@@ -21,6 +21,10 @@ type DCOSVariant struct {
 	Name string
 }
 
+func (v DCOSVariant) MarshalJSON() ([]byte, error) {
+	return []byte(fmt.Sprintf("\"%s\"", v.Name)), nil
+}
+
 func (v DCOSVariant) String() string {
 	return v.Name
 }
