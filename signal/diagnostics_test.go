@@ -27,7 +27,7 @@ func TestDiagnosticsTrack(t *testing.T) {
 	c.DCOSVersion = "test_version"
 	c.GenPlatform = "test_platform"
 	c.GenProvider = "test_provider"
-	c.DCOSVariant = "test_variant"
+	c.DCOSVariant = config.DCOSVariant{"test_variant"}
 
 	for _, e := range testDiag.Endpoints {
 		pullErr := PullReport(e, &testDiag, c)
@@ -83,7 +83,7 @@ func TestDiagnosticsTrack(t *testing.T) {
 		t.Error("Expected provider 'test_provider', got ", actualSegmentTrack.Properties["provider"])
 	}
 
-	if actualSegmentTrack.Properties["variant"] != "test_variant" {
+	if actualSegmentTrack.Properties["variant"].(config.DCOSVariant).Name != "test_variant" {
 		t.Error("Expected variant 'test_variant', got ", actualSegmentTrack.Properties["variant"])
 	}
 

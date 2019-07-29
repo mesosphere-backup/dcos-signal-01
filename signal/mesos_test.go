@@ -27,7 +27,7 @@ func testMesosTrack(t *testing.T) {
 	c.DCOSVersion = "test_version"
 	c.GenPlatform = "test_platform"
 	c.GenProvider = "test_provider"
-	c.DCOSVariant = "test_variant"
+	c.DCOSVariant = config.DCOSVariant{"test_variant"}
 
 	for _, e := range testMesos.Endpoints {
 		pullErr := PullReport(e, &testMesos, c)
