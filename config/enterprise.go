@@ -10,8 +10,8 @@ import (
 	"os"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/dgrijalva/jwt-go"
+	log "github.com/sirupsen/logrus"
 )
 
 func initEnterprise() {
@@ -50,9 +50,10 @@ func generateJWTToken() (string, error) {
 		return "", errors.New("UID, private key or login endpoint can not be empty.")
 	}
 	log.Debug("Generating JWT token...")
-	token := jwt.New(jwt.SigningMethodRS256)
-	token.Claims["uid"] = securityConfig.UID
-	token.Claims["exp"] = time.Now().Add(time.Hour).Unix()
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+		"uid": securityConfig.UID,
+		"exp": time.Now().Add(time.Hour).Unix(),
+	})
 	tokenStr, err := token.SignedString([]byte(securityConfig.PrivateKey))
 	if err != nil {
 		return "", err

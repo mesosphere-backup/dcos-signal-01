@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"os"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/dcos/dcos-signal/config"
-	"github.com/segmentio/analytics-go"
+	"gopkg.in/segmentio/analytics-go.v2"
 )
 
 var (

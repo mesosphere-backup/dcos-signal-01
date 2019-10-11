@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/dcos/dcos-signal/config"
-	"github.com/segmentio/analytics-go"
+	"gopkg.in/segmentio/analytics-go.v2"
 )
 
 type testReportType struct {

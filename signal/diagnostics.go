@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/dcos/dcos-signal/config"
-	"github.com/segmentio/analytics-go"
+	"gopkg.in/segmentio/analytics-go.v2"
 )
 
 // HealthReport defines the JSON received from the /system/health/report endpoint
