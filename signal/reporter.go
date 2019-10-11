@@ -9,9 +9,9 @@ import (
 	"net/url"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/dcos/dcos-signal/config"
-	"github.com/segmentio/analytics-go"
+	"gopkg.in/segmentio/analytics-go.v2"
 )
 
 // Reporter expresses a generic DC/OS service report

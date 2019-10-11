@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	analytics "github.com/segmentio/analytics-go"
+	"gopkg.in/segmentio/analytics-go.v2"
 )
 
 // TestSignalIntegration requires the SEGMENT_WRITE_KEY environment

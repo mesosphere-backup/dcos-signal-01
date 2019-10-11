@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/dcos/dcos-signal/config"
-	"github.com/segmentio/analytics-go"
+	"gopkg.in/segmentio/analytics-go.v2"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 // Complete report used by signal service, composed of all requests

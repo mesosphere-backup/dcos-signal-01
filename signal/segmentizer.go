@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/segmentio/analytics-go"
+	"gopkg.in/segmentio/analytics-go.v2"
 )
 
 // CreateUnitTotalKey creates the key for segmentIO properties for total hosts. This key

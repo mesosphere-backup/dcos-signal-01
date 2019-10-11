@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/dcos/dcos-signal/config"
-	"github.com/segmentio/analytics-go"
+	"gopkg.in/segmentio/analytics-go.v2"
+	log "github.com/sirupsen/logrus"
 )
 
 type CosmosPackages struct {

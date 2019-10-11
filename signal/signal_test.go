@@ -11,7 +11,7 @@ import (
 
 	"github.com/dcos/dcos-signal/config"
 	"github.com/gorilla/mux"
-	"github.com/segmentio/analytics-go"
+	"gopkg.in/segmentio/analytics-go.v2"
 )
 
 var mockNodes = []*Node{
